@@ -1,0 +1,24 @@
+# 1. จัดการ Python ทั่วไป
+__pycache__/
+*.py[cod]
+
+# 2. จัดการ Virtual Env (แม้จะมีไฟล์ข้างในแล้ว ก็ควรใส่ที่นี่ด้วยเพื่อความชัดเจน)
+.venv/
+venv/
+env/
+
+# 3. จัดการ Environment Variables (สำคัญมาก!)
+.env
+.env.local
+
+# 4. เครื่องมือจัดการ Package (ถ้าใช้ uv อาจจะมีไฟล์พวกนี้)
+# แต่ปกติ uv.lock ควรเอาขึ้น Git นะครับ ยกเว้นเราอยากจัดการเอง
+
+# 5. IDE Settings
+.vscode/
+# .idea/
+# *.swp
+
+# 6. OS Files
+.DS_Store
+Thumbs.db

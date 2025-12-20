@@ -1,0 +1,29 @@
+services:
+  db:
+    ports:
+      - 5432:5432
+    restart: "no"
+
+  adminer:
+    ports:
+      - 8080:8080
+    restart: "no"
+
+  backend:
+    ports:
+      - 8000:8000
+    restart: "no"
+    volumes:
+      - ./fastapi-backend:/app:ro
+    command: >
+      sh -c "fastapi dev main.py"
+
+  frontend:
+    ports:
+      - 3000:3000
+    restart: "no"
+    volumes:
+      - ./next-frontend:/app:ro
+      - /app/node_modules
+    command: >
+      sh -c "pnpm run dev"
