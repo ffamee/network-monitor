@@ -16,6 +16,7 @@ env/
 
 # 5. IDE Settings
 .vscode/
+*.code-workspace
 # .idea/
 # *.swp
 
