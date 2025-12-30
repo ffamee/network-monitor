@@ -7,5 +7,5 @@ router = APIRouter(
 
 
 @router.get("/")
-async def ping():
+async def ping() -> dict[str, str]:
     return {"message": "pong"}

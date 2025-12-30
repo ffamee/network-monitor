@@ -1,6 +1,6 @@
 import secrets
 import warnings
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
     AnyUrl,
@@ -10,7 +10,6 @@ from pydantic import (
     model_validator,
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Self
 
 
 def parse_cors(v: Any) -> list[str] | str:
@@ -34,15 +33,15 @@ class Settings(BaseSettings):
     FRONTEND_URL: str
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
-    BACKEND_CORS_ORIGINS: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = (
-        []
-    )
+    BACKEND_CORS_ORIGINS: Annotated[
+        list[AnyUrl] | str, BeforeValidator(parse_cors)
+    ] = []
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def all_cors_origins(self) -> list[str]:
         return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
-            self.FRONTEND_HOST
+            self.FRONTEND_URL
         ]
 
     # PROJECT_NAME: str
