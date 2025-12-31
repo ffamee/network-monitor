@@ -2,6 +2,7 @@
 
 import { APIProvider, Map, ColorScheme } from "@vis.gl/react-google-maps";
 import { useTheme } from "next-themes";
+import { Cluster, TestPolygon } from "./cluster";
 
 export function GoogleMap() {
 	const API_KEY =
@@ -17,7 +18,7 @@ export function GoogleMap() {
 
 	return (
 		<div className="size-full">
-			<APIProvider apiKey={API_KEY}>
+			<APIProvider apiKey={API_KEY} onLoad={() => console.log("Load map...")}>
 				<Map
 					reuseMaps={true}
 					mapId={"358498466570083911ca77a2"}
@@ -26,7 +27,11 @@ export function GoogleMap() {
 					defaultCenter={{ lat: 13.85003, lng: 100.57099 }}
 					gestureHandling={"greedy"}
 					// disableDefaultUI={true}
-				/>
+					onClick={(e) => console.log(e)}
+				>
+					<Cluster />
+					<TestPolygon />
+				</Map>
 			</APIProvider>
 		</div>
 	);
