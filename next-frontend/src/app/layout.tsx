@@ -29,7 +29,7 @@ export default function RootLayout({
 		<html lang="en" className={figtree.variable} suppressHydrationWarning>
 			<head />
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-hidden min-h-dvh w-screen no-scrollbar`}
 			>
 				<Providers>{children}</Providers>
 			</body>
