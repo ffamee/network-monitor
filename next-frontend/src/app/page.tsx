@@ -33,7 +33,7 @@ export default function Page() {
 					<Link
 						// onClick={onStart}
 						href={"/dashboard"}
-						className="group relative px-8 py-4 bg-primary hover:bg-primary/80 text-white rounded-full font-semibold text-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] flex items-center gap-2 mx-auto animate-in fade-in zoom-in duration-300 delay-75 hover:scale-105"
+						className="group relative px-8 py-4 bg-primary hover:bg-primary/80 text-white rounded-full font-semibold text-lg transition-all shadow-[0_0_15px_var(--destructive)]/50 hover:shadow-[0_0_30px_var(--destructive)]/50 flex items-center gap-2 mx-auto animate-in fade-in zoom-in duration-300 delay-75 hover:scale-105"
 					>
 						เข้าสู่ระบบ Dashboard
 						<ArrowRight className="group-hover:translate-x-1 transition-transform" />

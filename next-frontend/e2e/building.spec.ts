@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("test building page", () => {
 	test("Building Image Carousel displays control button", async ({ page }) => {
 		await page.goto("/dashboard/1");
-		const ImageCarousel = page.getByTestId("building-image-carousel").last();
+		const ImageCarousel = page.getByTestId("building-image-carousel");
 		await expect(ImageCarousel).toBeVisible();
 		await ImageCarousel.focus();
 		const previous = ImageCarousel.getByTestId(

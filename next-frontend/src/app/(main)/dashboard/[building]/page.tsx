@@ -3,26 +3,28 @@
 interface BuildingInfo {
 	name: string;
 	address: string;
-	contact: string;
-	floorCount: number;
+	admin: string;
+	tel: string;
+	floor: number;
 	totalProbes: number;
 	images: string[];
 }
 
 // --- Mock Data ---
-const buildingData: BuildingInfo = {
-	name: "อาคารนวัตกรรมดิจิทัล (Digital Innovation Tower)",
-	address: "123 ถ.สุขุมวิท เขตวัฒนา กรุงเทพฯ 10110",
-	contact: "คุณสมชาย (IT Manager) - 081-234-5678",
-	floorCount: 24,
-	totalProbes: 48,
-	images: [
-		"https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop",
-		"https://images.unsplash.com/photo-1558494949-ef526b0042a0?q=80&w=2668&auto=format&fit=crop",
-		"https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop",
-		"https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop",
-	],
-};
+// const buildingData: BuildingInfo = {
+// 	name: "อาคารนวัตกรรมดิจิทัล (Digital Innovation Tower)",
+// 	address: "123 ถ.สุขุมวิท เขตวัฒนา กรุงเทพฯ 10110",
+// 	admin: "คุณสมชาย (IT Manager)",
+// 	tel: "081-234-5678",
+// 	floor: 24,
+// 	totalProbes: 48,
+// 	images: [
+// 		"https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop",
+// 		"https://images.unsplash.com/photo-1558494949-ef526b0042a0?q=80&w=2668&auto=format&fit=crop",
+// 		"https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop",
+// 		"https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop",
+// 	],
+// };
 
 const healthMetrics = [
 	{
@@ -72,7 +74,7 @@ const healthMetrics = [
 	},
 ];
 
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { TrendingUp, Map as MapIcon, Image as ImageIcon } from "lucide-react";
 import { BuildingImageCarousel } from "./image-carousel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,16 +101,40 @@ import { ProbeTable } from "./probe-table";
 
 // --- Components ---
 
-export default function BuildingPage() {
+async function getBuildingData(buildingId: string) {
+	const res = await fetch(
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}`,
+		{
+			headers: {
+				// Authorization: `Bearer ${process.env.NEXT_PUBLIC_BACKEND_API_KEY}`,
+				"Content-Type": "application/json",
+			},
+			credentials: "include",
+		}
+	);
+	if (!res.ok) {
+		throw new Error("Failed to fetch building data");
+	}
+	const data = await res.json();
+	return data as BuildingInfo;
+}
+
+export default async function BuildingPage({
+	params,
+}: {
+	params: Promise<{ building: string }>;
+}) {
+	const { building } = await params;
+	const buildingData = await getBuildingData(building);
 	return (
-		<div className="min-h-full h-dvh overflow-y-auto overscroll-none no-scrollbar bg-background font-sans animate-in fade-in duration-500">
+		<div className="min-h-full h-dvh overflow-y-auto overscroll-none no-scrollbar bg-background animate-in fade-in duration-500">
 			{/* Main Content (Bento Grid) */}
 			<main className="pt-24 pb-12 px-4 max-w-screen flex flex-col space-y-4">
 				<div className="grid grid-cols-1 md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_1fr] gap-4 auto-rows-[minmax(160px,auto)]">
-					<div className="md:row-span-2 w-full flex justify-center items-center">
+					<div className="md:row-span-2 w-full flex justify-center items-center h-full">
 						<Tabs
 							defaultValue="image"
-							className="relative h-auto lg:h-auto w-3/4 md:w-full max-w-xs md:max-w-sm lg:max-w-lg shadow-md
+							className="relative h-auto md:h-full w-3/4 md:w-full max-w-xs md:max-w-sm lg:max-w-lg shadow-md
 						ring-foreground/20 bg-card text-card-foreground gap-4 rounded-4xl text-xs/relaxed ring-1 flex flex-col"
 						>
 							{/* View Toggle Button */}
@@ -158,7 +184,7 @@ export default function BuildingPage() {
 							</div>
 						</Tabs>
 					</div>
-					<InfoCard {...buildingData} />
+					<InfoCard {...buildingData} slug={building} />
 					<div className="grid grid-cols-2 gap-4 h-full">
 						<Suspense fallback={<Skeleton className="h-full rounded-4xl" />}>
 							<UpTimeCard />

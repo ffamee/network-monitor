@@ -1,10 +1,10 @@
 import { ModeToggle } from "@/components/theme/togglemode";
 import { Activity, Menu } from "lucide-react";
 import Link from "next/link";
-import DashboardNavigationTab from "./navigation-tab";
+import MainNavigationTab from "./navigation-tab";
 import CurrentTime from "./current-time";
 
-export default function DashboardTopNavBar() {
+export default function MainTopNavBar() {
 	return (
 		<header className="fixed top-0 w-full z-50 bg-sidebar-accent/75 text-sidebar-accent-foreground backdrop-brightness-75 backdrop-blur-md border-b border-sidebar-border">
 			<div className="min-w-full mx-auto px-4 h-16 flex items-center justify-between">
@@ -27,14 +27,16 @@ export default function DashboardTopNavBar() {
 					</div>
 				</Link>
 
-				<DashboardNavigationTab />
+				<MainNavigationTab />
 
-				<div className="flex items-center gap-4">
-					<ModeToggle />
-					<CurrentTime />
-					<button className="p-2 text-slate-400 hover:text-white transition-colors md:hidden">
+				<div className="flex items-center gap-[clamp(0.5rem,1vw,1rem)]">
+					<div className="hidden md:block">
+						<ModeToggle />
+					</div>
+					<button className="text-primary/80 hover:text-primary transition-colors md:hidden cursor-pointer">
 						<Menu size={24} />
 					</button>
+					<CurrentTime />
 					<div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 overflow-hidden cursor-pointer hover:border-blue-500 transition-colors">
 						<img
 							src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin"

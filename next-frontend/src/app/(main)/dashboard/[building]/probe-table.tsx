@@ -16,7 +16,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { CheckCircle2, LaptopMinimal, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 interface Probe {
 	id: string;
@@ -184,8 +184,8 @@ const initialProbes: Probe[] = [
 
 export const ProbeTable = () => {
 	const [searchTerm, setSearchTerm] = useState("");
-	const headerRef = useRef(null);
-	const [headerRowWidth, setHeaderRowWidth] = useState<number>(0);
+	// const headerRef = useRef(null);
+	// const [headerRowWidth, setHeaderRowWidth] = useState<number>(0);
 
 	const filteredProbes = initialProbes.filter(
 		(p) =>
@@ -193,21 +193,19 @@ export const ProbeTable = () => {
 			p.ip.includes(searchTerm)
 	);
 
-	useEffect(() => {
-		if (!headerRef.current) return;
-		const observer = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				const height = entry.borderBoxSize[0]?.blockSize || 0;
-				setHeaderRowWidth(height);
-			}
-		});
+	// useEffect(() => {
+	// 	if (!headerRef.current) return;
+	// 	const observer = new ResizeObserver((entries) => {
+	// 		for (const entry of entries) {
+	// 			const height = entry.borderBoxSize[0]?.blockSize || 0;
+	// 			setHeaderRowWidth(height);
+	// 		}
+	// 	});
 
-		observer.observe(headerRef.current);
+	// 	observer.observe(headerRef.current);
 
-		return () => observer.disconnect();
-	}, []);
-
-	console.log("Header Row Width:", headerRowWidth);
+	// 	return () => observer.disconnect();
+	// }, []);
 
 	return (
 		<Card className="w-full ring-foreground/20 shadow-md h-auto rounded-4xl">
@@ -237,7 +235,10 @@ export const ProbeTable = () => {
 			<CardContent>
 				<div className="*:overflow-y-scroll *:max-h-[50dvh] *:no-scrollbar *:overscroll-none">
 					<Table className="w-full text-left text-sm border-collapse">
-						<TableHeader className="sticky top-0 z-20 bg-card" ref={headerRef}>
+						<TableHeader
+							className="sticky top-0 z-20 bg-card"
+							// ref={headerRef}
+						>
 							<TableRow className="*:text-primary font-medium *:shadow-[inset_0_-2px_0_0_var(--destructive)]/70">
 								<TableHead className="pb-3 pl-2 font-medium" />
 								<TableHead className="pb-3 font-medium">ชื่ออุปกรณ์</TableHead>
@@ -346,7 +347,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 			<span
 				className={`w-1.5 h-1.5 rounded-full ${
 					status === "online"
-						? "bg-emerald-500 animate-pulse"
+						? "bg-emerald-500"
 						: status === "warning"
 						? "bg-amber-500"
 						: "bg-rose-500"

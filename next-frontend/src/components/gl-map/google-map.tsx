@@ -17,7 +17,7 @@ export default function GoogleMap() {
 		: ColorScheme.FOLLOW_SYSTEM;
 
 	return (
-		<div className="w-dvw max-w-full max-h-full aspect-square">
+		<div className="w-dvw max-w-full h-full max-h-full aspect-square">
 			<APIProvider apiKey={API_KEY} onLoad={() => console.log("Load map...")}>
 				<Map
 					reuseMaps={true}

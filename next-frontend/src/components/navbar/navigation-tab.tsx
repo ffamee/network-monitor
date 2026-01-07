@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function DashboardNavigationTab() {
+export default function MainNavigationTab() {
 	const path = usePathname();
 	const [activeTab, setActiveTab] = useState("");
 
@@ -12,22 +12,22 @@ export default function DashboardNavigationTab() {
 	}, [path]);
 
 	const tabsList = [
+		{ name: "Map", href: "map" },
 		{ name: "Dashboard", href: "dashboard" },
-		{ name: "Analytics", href: "analytics" },
 		{ name: "Settings", href: "settings" },
 	];
 
 	return (
-		<nav className="hidden md:flex items-center gap-1 p-1 bg-sidebar-accent rounded-full border border-sidebar-ring">
+		<nav className="hidden md:grid md:grid-cols-3 items-center gap-1 p-1 bg-sidebar-accent rounded-full border border-sidebar-ring">
 			{tabsList.map((item) => (
 				<Link
 					key={item.name}
 					href={`/${item.href}`}
-					className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-						activeTab === item.href
-							? "bg-primary text-white shadow-sm"
-							: "text-sidebar-primary hover:text-sidebar-accent-foreground"
-					} disabled:text-sidebar-primary/30`}
+					data-active={activeTab === item.href ? "true" : "false"}
+					className="px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 w-full text-center
+										data-[active=true]:bg-primary data-[active=true]:text-white data-[active=true]:shadow-sm
+										data-[active=false]:text-sidebar-primary data-[active=false]:hover:text-sidebar-accent-foreground
+										"
 				>
 					{item.name}
 				</Link>

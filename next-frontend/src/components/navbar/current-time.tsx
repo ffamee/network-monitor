@@ -1,6 +1,7 @@
 "use client";
 import { Clock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 export default function CurrentTime() {
 	const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -13,7 +14,12 @@ export default function CurrentTime() {
 	}, []);
 
 	if (!currentTime) {
-		return <div>Loading...</div>;
+		return (
+			<Skeleton className="h-8 px-3 bg-muted border border-ring/50 text-muted-foreground/50 flex items-center justify-center rounded-lg gap-2">
+				<Clock size={16} />
+				00:00:00
+			</Skeleton>
+		);
 	}
 
 	return (
