@@ -2,33 +2,14 @@ import { Pin, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import type { Marker } from "@googlemaps/markerclusterer";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Polygon } from "./geometry/polygon";
 
-type Poi = { key: string; location: google.maps.LatLngLiteral };
-const locations: Poi[] = [
-	{ key: "poi-1", location: { lat: 13.8515, lng: 100.572 } },
-	{ key: "poi-2", location: { lat: 13.852, lng: 100.575 } },
-	{ key: "poi-3", location: { lat: 13.853, lng: 100.578 } },
-	{ key: "poi-4", location: { lat: 13.854, lng: 100.579 } },
-	{ key: "poi-5", location: { lat: 13.855, lng: 100.574 } },
-	{ key: "poi-6", location: { lat: 13.856, lng: 100.571 } },
-	{ key: "poi-7", location: { lat: 13.857, lng: 100.577 } },
-	{ key: "poi-8", location: { lat: 13.858, lng: 100.573 } },
-	{ key: "poi-9", location: { lat: 13.859, lng: 100.576 } },
-	{ key: "poi-10", location: { lat: 13.8545, lng: 100.5725 } },
-	{ key: "poi-11", location: { lat: 13.8518, lng: 100.578 } },
-	{ key: "poi-12", location: { lat: 13.8525, lng: 100.571 } },
-	{ key: "poi-13", location: { lat: 13.8535, lng: 100.575 } },
-	{ key: "poi-14", location: { lat: 13.8565, lng: 100.579 } },
-	{ key: "poi-15", location: { lat: 13.8575, lng: 100.573 } },
-	{ key: "poi-16", location: { lat: 13.8585, lng: 100.577 } },
-	{ key: "poi-17", location: { lat: 13.8555, lng: 100.574 } },
-	{ key: "poi-18", location: { lat: 13.8595, lng: 100.571 } },
-	{ key: "poi-19", location: { lat: 13.8542, lng: 100.576 } },
-	{ key: "poi-20", location: { lat: 13.8532, lng: 100.572 } },
-];
+type Location = {
+	key: string;
+	location: google.maps.LatLngLiteral;
+	color?: string;
+};
 
-export const Cluster = () => {
+export const Cluster = ({ locations }: { locations: Location[] }) => {
 	const map = useMap();
 	const [markers, setMarkers] = useState<{ [key: string]: Marker }>({});
 	// const clusterer = useRef<MarkerClusterer | null>(null);
@@ -100,6 +81,7 @@ export const Cluster = () => {
 					name={poi.key}
 					position={poi.location}
 					setMarkerRef={setMarkerRef}
+					color={poi?.color}
 				/>
 			))}
 		</>
@@ -110,6 +92,7 @@ const CustomMarker = (props: {
 	name: string;
 	position: google.maps.LatLngLiteral;
 	setMarkerRef: (marker: Marker | null, key: string) => void;
+	color?: string;
 }) => {
 	const { name, position, setMarkerRef } = props;
 	const ref = useCallback(
@@ -117,20 +100,72 @@ const CustomMarker = (props: {
 			setMarkerRef(marker, name),
 		[setMarkerRef, name]
 	);
+
+	const { background, borderColor, glyphColor } = generatePinColors(
+		props.color
+	);
+
 	return (
 		<AdvancedMarker position={position} ref={ref} clickable>
-			<Pin />
+			<Pin
+				background={background}
+				glyphColor={glyphColor}
+				borderColor={borderColor}
+			/>
 		</AdvancedMarker>
 	);
 };
 
-const defaultPaths = [
-	{ lat: 13.85003, lng: 100.57099 },
-	{ lat: 13.86003, lng: 100.57099 },
-	{ lat: 13.86003, lng: 100.58099 },
-	{ lat: 13.85003, lng: 100.58099 },
-];
+const generatePinColors = (baseColor?: string) => {
+	if (!baseColor) {
+		return {
+			background: undefined,
+			borderColor: undefined,
+			glyphColor: undefined,
+		};
+	}
 
-export const TestPolygon = () => {
-	return <Polygon paths={defaultPaths}></Polygon>;
+	const lighten = (color: string, percent: number) => {
+		const num = parseInt(color.replace("#", ""), 16),
+			amt = Math.round(2.55 * percent),
+			R = (num >> 16) + amt,
+			B = ((num >> 8) & 0x00ff) + amt,
+			G = (num & 0x0000ff) + amt;
+		return (
+			"#" +
+			(
+				0x1000000 +
+				(R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+				(B < 255 ? (B < 1 ? 0 : B) : 255) * 0x100 +
+				(G < 255 ? (G < 1 ? 0 : G) : 255)
+			)
+				.toString(16)
+				.slice(1)
+		);
+	};
+
+	const darken = (color: string, percent: number) => {
+		const num = parseInt(color.replace("#", ""), 16),
+			amt = Math.round(2.55 * percent),
+			R = (num >> 16) - amt,
+			B = ((num >> 8) & 0x00ff) - amt,
+			G = (num & 0x0000ff) - amt;
+		return (
+			"#" +
+			(
+				0x1000000 +
+				(R > 0 ? R : 0) * 0x10000 +
+				(B > 0 ? B : 0) * 0x100 +
+				(G > 0 ? G : 0)
+			)
+				.toString(16)
+				.slice(1)
+		);
+	};
+
+	return {
+		background: lighten(baseColor, 20), // จางลง 40% (สีอ่อน)
+		borderColor: baseColor, // สีเดิม (สีกลาง)
+		glyphColor: darken(baseColor, 40), // เข้มขึ้น 40% (สีเข้ม)
+	};
 };

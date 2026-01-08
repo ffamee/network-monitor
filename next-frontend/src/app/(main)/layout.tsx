@@ -6,7 +6,7 @@ export default function MainLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<section>
+		<section className="min-h-full h-dvh overflow-y-auto overscroll-none no-scrollbar">
 			<MainTopNavBar />
 			{children}
 		</section>
