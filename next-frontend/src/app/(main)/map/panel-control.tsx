@@ -1,14 +1,19 @@
-import { Layers, Minimize2 } from "lucide-react";
+import { Layers, Minimize2, Eye, EyeOff } from "lucide-react";
 
 interface PanelControlProps {
 	// zone: string[];
 	toggleOpenPanel: () => void;
 	visible: { [key: string]: { polygon: boolean; pin: boolean } };
 	setVisible: (zone: string, type: "polygon" | "pin") => void;
-	setAllVisible: (type: "polygon" | "pin") => void;
+	setAllVisible: (type: "polygon" | "pin", value: boolean) => void;
 }
 
 export default function PanelControl(prop: PanelControlProps) {
+	const allState = {
+		polygon: Object.values(prop.visible).every((v) => v.polygon),
+		pin: Object.values(prop.visible).every((v) => v.pin),
+	};
+
 	return (
 		<div className="bg-card text-card-foreground border border-ring rounded-2xl shadow-lg overflow-hidden max-w-xs">
 			{/* Panel Header */}
@@ -34,29 +39,43 @@ export default function PanelControl(prop: PanelControlProps) {
 							{Object.keys(prop.visible).length}
 						</span>
 					</div>
-					<div className="space-y-4 max-h-60 overflow-y-auto no-scrollbar">
+					<div className="space-y-4 max-h-60 overflow-y-auto">
 						{Object.keys(prop.visible).map((z) => (
 							<div key={z} className="space-y-2 px-4">
 								<h5 className="text-sm font-medium">{z}</h5>
 								<div className="flex flex-row gap-4">
-									<label className="inline-flex items-center gap-2 text-sm cursor-pointer">
-										<input
-											type="checkbox"
-											checked={prop.visible[z]?.polygon || false}
-											onChange={() => prop.setVisible(z, "polygon")}
-											className="accent-primary"
+									<div
+										data-on={prop.visible[z]?.polygon ? "true" : "false"}
+										className="inline-flex items-center gap-2 text-sm cursor-pointer group"
+										onClick={() => prop.setVisible(z, "polygon")}
+									>
+										<Eye
+											size={16}
+											className="text-primary group-data-[on=true]:block group-data-[on=false]:hidden"
 										/>
-										Show Polygon
-									</label>
-									<label className="inline-flex items-center gap-2 text-sm cursor-pointer">
-										<input
-											type="checkbox"
-											checked={prop.visible[z]?.pin || false}
-											onChange={() => prop.setVisible(z, "pin")}
-											className="accent-primary"
+										<EyeOff
+											size={16}
+											className="text-secondary-foreground/30 hover:text-primary transition-colors
+																group-data-[on=true]:hidden group-data-[on=false]:block"
+										/>
+										Polygon
+									</div>
+									<div
+										data-on={prop.visible[z]?.pin ? "true" : "false"}
+										className="inline-flex items-center gap-2 text-sm cursor-pointer group"
+										onClick={() => prop.setVisible(z, "pin")}
+									>
+										<Eye
+											size={16}
+											className="text-primary group-data-[on=true]:block group-data-[on=false]:hidden"
+										/>
+										<EyeOff
+											size={16}
+											className="text-secondary-foreground/30 hover:text-primary transition-colors
+																group-data-[on=true]:hidden group-data-[on=false]:block"
 										/>
 										Show Pin
-									</label>
+									</div>
 								</div>
 							</div>
 						))}
@@ -67,22 +86,40 @@ export default function PanelControl(prop: PanelControlProps) {
 					>
 						<div className="font-medium">Show All(s)</div>
 						<div className="grid grid-cols-2 gap-4 w-full">
-							<label className="inline-flex text-left items-center gap-2 cursor-pointer">
-								<button
-									onClick={() => prop.setAllVisible("polygon")}
-									className="accent-primary hover:underline hover:text-primary"
-								>
-									Polygon(s)
-								</button>
-							</label>
-							<label className="inline-flex text-left items-center gap-2 cursor-pointer">
-								<button
-									onClick={() => prop.setAllVisible("pin")}
-									className="accent-primary hover:underline hover:text-primary"
-								>
-									Pin(s)
-								</button>
-							</label>
+							<div
+								data-on={allState.polygon ? "true" : "false"}
+								className="inline-flex text-left items-center gap-2 cursor-pointer group hover:text-primary transition-colors hover:underline"
+								onClick={() => prop.setAllVisible("polygon", !allState.polygon)}
+							>
+								<Eye
+									size={16}
+									className="text-primary group-hover:text-secondary-foreground/30 transition-colors
+															group-data-[on=true]:block group-data-[on=false]:hidden"
+								/>
+								<EyeOff
+									size={16}
+									className="text-secondary-foreground/30 group-hover:text-primary transition-colors
+															group-data-[on=true]:hidden group-data-[on=false]:block"
+								/>
+								Polygon(s)
+							</div>
+							<div
+								data-on={allState.pin ? "true" : "false"}
+								className="inline-flex text-left items-center gap-2 cursor-pointer group hover:text-primary transition-colors hover:underline"
+								onClick={() => prop.setAllVisible("pin", !allState.pin)}
+							>
+								<Eye
+									size={16}
+									className="text-primary group-hover:text-secondary-foreground/30 transition-colors
+															group-data-[on=true]:block group-data-[on=false]:hidden"
+								/>
+								<EyeOff
+									size={16}
+									className="text-secondary-foreground/30 group-hover:text-primary transition-colors
+															group-data-[on=true]:hidden group-data-[on=false]:block"
+								/>
+								Show Pin(s)
+							</div>
 						</div>
 					</div>
 				</div>

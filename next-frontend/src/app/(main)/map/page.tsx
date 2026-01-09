@@ -65,12 +65,12 @@ export default function MapPage() {
 		});
 	};
 
-	const handleSetAllVisible = (type: "polygon" | "pin") => {
+	const handleSetAllVisible = (type: "polygon" | "pin", value: boolean) => {
 		setVisible((prev) => {
 			const newVisible: { [key: string]: { polygon: boolean; pin: boolean } } =
 				{};
 			for (const z in prev) {
-				newVisible[z] = { ...prev[z], [type]: true };
+				newVisible[z] = { ...prev[z], [type]: value };
 			}
 			return newVisible;
 		});
@@ -84,8 +84,6 @@ export default function MapPage() {
 				: [];
 		});
 	}, [zone, visible]);
-
-	console.log("Rendered MapPage", { zone, visible, filteredLocations });
 
 	return (
 		<main className="w-full h-[calc(100%-4rem)] mt-16">
@@ -117,7 +115,7 @@ export default function MapPage() {
 				</>
 				<Cluster locations={filteredLocations} />
 			</GoogleMap>
-			<div className="absolute top-20 right-4 z-50">
+			<div className="hidden sm:block absolute top-20 right-4 z-50">
 				{isPanelOpen ? (
 					<PanelControl
 						{...{
