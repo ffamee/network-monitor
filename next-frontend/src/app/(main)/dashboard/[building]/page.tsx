@@ -127,7 +127,7 @@ export default async function BuildingPage({
 	const { building } = await params;
 	const buildingData = await getBuildingData(building);
 	return (
-		<div className="min-h-full h-dvh overflow-y-auto overscroll-none no-scrollbar bg-background animate-in fade-in duration-500">
+		<div className="min-h-full h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
 			{/* Main Content (Bento Grid) */}
 			<main className="pt-24 pb-12 px-4 max-w-screen flex flex-col space-y-4">
 				<div className="grid grid-cols-1 md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_1fr] gap-4 auto-rows-[minmax(160px,auto)]">

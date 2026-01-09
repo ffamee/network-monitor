@@ -233,7 +233,7 @@ export const ProbeTable = () => {
 				</CardAction>
 			</CardHeader>
 			<CardContent>
-				<div className="*:overflow-y-scroll *:max-h-[50dvh] *:no-scrollbar *:overscroll-none">
+				<div className="*:overflow-y-scroll *:max-h-[50dvh] *:no-scrollbar *:overscroll-auto">
 					<Table className="w-full text-left text-sm border-collapse">
 						<TableHeader
 							className="sticky top-0 z-20 bg-card"
