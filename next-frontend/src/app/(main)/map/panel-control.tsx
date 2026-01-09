@@ -2,20 +2,28 @@ import { Layers, Minimize2, Eye, EyeOff } from "lucide-react";
 
 interface PanelControlProps {
 	// zone: string[];
+	isOpen: boolean;
 	toggleOpenPanel: () => void;
 	visible: { [key: string]: { polygon: boolean; pin: boolean } };
 	setVisible: (zone: string, type: "polygon" | "pin") => void;
 	setAllVisible: (type: "polygon" | "pin", value: boolean) => void;
 }
 
-export default function PanelControl(prop: PanelControlProps) {
+export default function PanelControl(props: PanelControlProps) {
 	const allState = {
-		polygon: Object.values(prop.visible).every((v) => v.polygon),
-		pin: Object.values(prop.visible).every((v) => v.pin),
+		polygon: Object.values(props.visible).every((v) => v.polygon),
+		pin: Object.values(props.visible).every((v) => v.pin),
 	};
 
 	return (
-		<div className="bg-card text-card-foreground border border-ring rounded-2xl shadow-lg overflow-hidden max-w-xs">
+		<div
+			data-open={props.isOpen ? "true" : "false"}
+			className="fixed mobile:absolute bottom-0 left-0 w-full rounded-t-2xl transition-transform duration-300 ease-out
+									mobile:left-auto mobile:bottom-auto mobile:top-20 mobile:right-4 z-10
+									bg-card text-card-foreground border border-ring mobile:rounded-2xl shadow-lg overflow-hidden mobile:max-w-[clamp(16rem,30vw,20rem)]
+									data-[open=true]:translate-y-0 data-[open=false]:translate-y-full
+									mobile:data-[open=true]:block mobile:data-[open=false]:hidden"
+		>
 			{/* Panel Header */}
 			<div className="flex items-center justify-between p-3 border-b border-ring">
 				<div className="flex items-center gap-2">
@@ -23,7 +31,7 @@ export default function PanelControl(prop: PanelControlProps) {
 					<span className="font-semibold text-sm ">Map Layers</span>
 				</div>
 				<button
-					onClick={prop.toggleOpenPanel}
+					onClick={props.toggleOpenPanel}
 					className="p-1.5 text-secondary-foreground/30 hover:text-primary hover:scale-110 transition-all"
 				>
 					<Minimize2 size={16} />
@@ -36,18 +44,18 @@ export default function PanelControl(prop: PanelControlProps) {
 					<div className="text-xs font-semibold text-secondary-foreground/30 uppercase tracking-wider flex items-center justify-between">
 						Zones
 						<span className="text-[10px] bg-secondary-foreground/30 px-1.5 py-0.5 rounded text-card">
-							{Object.keys(prop.visible).length}
+							{Object.keys(props.visible).length}
 						</span>
 					</div>
-					<div className="space-y-4 max-h-60 overflow-y-auto">
-						{Object.keys(prop.visible).map((z) => (
-							<div key={z} className="space-y-2 px-4">
+					<div className="space-y-4 max-h-60 overflow-y-auto w-full scroll-smooth snap-y snap-mandatory overscroll-none">
+						{Object.keys(props.visible).map((z) => (
+							<div key={z} className="space-y-2 px-4 snap-start snap-always">
 								<h5 className="text-sm font-medium">{z}</h5>
-								<div className="flex flex-row gap-4">
+								<div className="grid grid-cols-2 gap-4">
 									<div
-										data-on={prop.visible[z]?.polygon ? "true" : "false"}
+										data-on={props.visible[z]?.polygon ? "true" : "false"}
 										className="inline-flex items-center gap-2 text-sm cursor-pointer group"
-										onClick={() => prop.setVisible(z, "polygon")}
+										onClick={() => props.setVisible(z, "polygon")}
 									>
 										<Eye
 											size={16}
@@ -61,9 +69,9 @@ export default function PanelControl(prop: PanelControlProps) {
 										Polygon
 									</div>
 									<div
-										data-on={prop.visible[z]?.pin ? "true" : "false"}
+										data-on={props.visible[z]?.pin ? "true" : "false"}
 										className="inline-flex items-center gap-2 text-sm cursor-pointer group"
-										onClick={() => prop.setVisible(z, "pin")}
+										onClick={() => props.setVisible(z, "pin")}
 									>
 										<Eye
 											size={16}
@@ -74,7 +82,7 @@ export default function PanelControl(prop: PanelControlProps) {
 											className="text-secondary-foreground/30 hover:text-primary transition-colors
 																group-data-[on=true]:hidden group-data-[on=false]:block"
 										/>
-										Show Pin
+										Pin
 									</div>
 								</div>
 							</div>
@@ -89,7 +97,9 @@ export default function PanelControl(prop: PanelControlProps) {
 							<div
 								data-on={allState.polygon ? "true" : "false"}
 								className="inline-flex text-left items-center gap-2 cursor-pointer group hover:text-primary transition-colors hover:underline"
-								onClick={() => prop.setAllVisible("polygon", !allState.polygon)}
+								onClick={() =>
+									props.setAllVisible("polygon", !allState.polygon)
+								}
 							>
 								<Eye
 									size={16}
@@ -106,7 +116,7 @@ export default function PanelControl(prop: PanelControlProps) {
 							<div
 								data-on={allState.pin ? "true" : "false"}
 								className="inline-flex text-left items-center gap-2 cursor-pointer group hover:text-primary transition-colors hover:underline"
-								onClick={() => prop.setAllVisible("pin", !allState.pin)}
+								onClick={() => props.setAllVisible("pin", !allState.pin)}
 							>
 								<Eye
 									size={16}

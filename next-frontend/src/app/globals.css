@@ -137,3 +137,7 @@
 		scrollbar-width: none; /* Firefox */
 	}
 }
+
+@theme {
+	--breakpoint-mobile: 30rem; /* 480px */
+}

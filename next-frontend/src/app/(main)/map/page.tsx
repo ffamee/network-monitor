@@ -6,6 +6,10 @@ import { Layers } from "lucide-react";
 import GoogleMap from "@/components/gl-map/google-map";
 import { Polygon } from "@/components/gl-map/geometry/polygon";
 import { Cluster } from "@/components/gl-map/cluster";
+import ZoneCard from "./zone-card";
+import { useSearchParams } from "next/navigation";
+import Lightbox from "./light-box";
+// import { useMap } from "@vis.gl/react-google-maps";
 
 type Poi = { key: string; location: google.maps.LatLngLiteral };
 
@@ -14,6 +18,7 @@ type ZoneInfo = {
 	color: string;
 	paths: google.maps.LatLngLiteral[];
 	locations: Poi[];
+	slug: string;
 };
 
 export default function MapPage() {
@@ -22,6 +27,15 @@ export default function MapPage() {
 	const [visible, setVisible] = useState<{
 		[key: string]: { polygon: boolean; pin: boolean };
 	}>({});
+	const searchParams = useSearchParams();
+	const queryZone = searchParams.get("zone");
+
+	const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+	const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+	const [lightboxIndex, setLightboxIndex] = useState(0);
+	const [selectedZone, setSelectedZone] = useState<string | null>(queryZone);
+
+	// const map = useMap();
 
 	useEffect(() => {
 		const fetchZones = async () => {
@@ -34,7 +48,6 @@ export default function MapPage() {
 					credentials: "include",
 				}
 			);
-			// const data = ["Zone A", "Zone B", "Zone C", "Zone D", "Zone E"];
 			const data = await response.json();
 			// receive data from backend as Object
 			setZone(data);
@@ -76,6 +89,16 @@ export default function MapPage() {
 		});
 	};
 
+	const handleLightbox = (images: string[], index: number) => {
+		setLightboxIndex(index);
+		setLightboxImages(images);
+		setIsLightboxOpen(true);
+	};
+
+	const handleCloseLightbox = () => {
+		setIsLightboxOpen(false);
+	};
+
 	const filteredLocations = useMemo(() => {
 		return zone.flatMap((z) => {
 			const isPinVisible = visible[z.name]?.pin;
@@ -87,6 +110,8 @@ export default function MapPage() {
 
 	return (
 		<main className="w-full h-[calc(100%-4rem)] mt-16">
+			{/* <div className="w-full h-full bg-red-300" /> */}
+			{/* Map Component */}
 			<GoogleMap
 				{...{
 					props: {
@@ -109,32 +134,56 @@ export default function MapPage() {
 									paths={z.paths}
 									strokeColor={z.color}
 									fillColor={z.color}
+									onClick={() => setSelectedZone(z.slug)}
 								/>
 							)
 					)}
 				</>
 				<Cluster locations={filteredLocations} />
 			</GoogleMap>
-			<div className="hidden sm:block absolute top-20 right-4 z-50">
-				{isPanelOpen ? (
-					<PanelControl
-						{...{
-							toggleOpenPanel,
-							visible,
-							setVisible: handleVisibilityChange,
-							setAllVisible: handleSetAllVisible,
+
+			{/* Panel Control & Toggle Button */}
+			<div className="w-full">
+				<PanelControl
+					{...{
+						isOpen: isPanelOpen,
+						toggleOpenPanel,
+						visible,
+						setVisible: handleVisibilityChange,
+						setAllVisible: handleSetAllVisible,
+					}}
+				/>
+				{isPanelOpen && (
+					<div
+						className="mobile:hidden inset-0 bg-black/80 fixed fade-in"
+						onClick={(e: React.MouseEvent) => {
+							if (e.target === e.currentTarget) {
+								toggleOpenPanel();
+							}
 						}}
 					/>
-				) : (
+				)}
+				{!isPanelOpen && (
 					<button
 						title="เปิดแผงควบคุมเลเยอร์"
 						onClick={toggleOpenPanel}
-						className="p-1.5 bg-secondary hover:bg-primary rounded-lg text-primary hover:text-secondary transition-colors border border-primary"
+						className="absolute top-20 right-4 z-10 aspect-square
+												p-1.5 bg-secondary hover:bg-primary rounded-lg text-primary hover:text-secondary transition-colors border border-primary"
 					>
 						<Layers size={18} />
 					</button>
 				)}
 			</div>
+
+			{/* Zone Card Info */}
+			<ZoneCard selectedZone={selectedZone} setLightbox={handleLightbox} />
+			<Lightbox
+				isOpen={isLightboxOpen}
+				images={lightboxImages}
+				initialIndex={lightboxIndex}
+				onClose={handleCloseLightbox}
+				setIndex={setLightboxIndex}
+			/>
 		</main>
 	);
 }
