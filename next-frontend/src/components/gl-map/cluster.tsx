@@ -60,6 +60,13 @@ export const Cluster = ({ locations }: { locations: Location[] }) => {
 		});
 	}, []);
 
+	// const handleMarker = (e: google.maps.MapMouseEvent) => {
+	// 	if (!map) return;
+	// 	map.panTo(e.latLng!);
+	// 	map.setZoom(18);
+	// 	map.panBy(-100, 0);
+	// };
+
 	return (
 		<>
 			{locations.map((poi) => (
@@ -81,6 +88,7 @@ export const Cluster = ({ locations }: { locations: Location[] }) => {
 					name={poi.key}
 					position={poi.location}
 					setMarkerRef={setMarkerRef}
+					// handleMarker={handleMarker}
 					color={poi?.color}
 				/>
 			))}
@@ -92,6 +100,7 @@ const CustomMarker = (props: {
 	name: string;
 	position: google.maps.LatLngLiteral;
 	setMarkerRef: (marker: Marker | null, key: string) => void;
+	// handleMarker: (e: google.maps.MapMouseEvent) => void;
 	color?: string;
 }) => {
 	const { name, position, setMarkerRef } = props;
@@ -106,7 +115,12 @@ const CustomMarker = (props: {
 	);
 
 	return (
-		<AdvancedMarker position={position} ref={ref} clickable>
+		<AdvancedMarker
+			position={position}
+			ref={ref}
+			clickable
+			// onClick={props.handleMarker}
+		>
 			<Pin
 				background={background}
 				glyphColor={glyphColor}

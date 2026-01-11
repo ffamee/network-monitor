@@ -19,7 +19,7 @@ export default function PanelControl(props: PanelControlProps) {
 		<div
 			data-open={props.isOpen ? "true" : "false"}
 			className="fixed mobile:absolute bottom-0 left-0 w-full rounded-t-2xl transition-transform duration-300 ease-out
-									mobile:left-auto mobile:bottom-auto mobile:top-20 mobile:right-4 z-10
+									mobile:left-auto mobile:bottom-auto mobile:top-20 mobile:right-4 z-50
 									bg-card text-card-foreground border border-ring mobile:rounded-2xl shadow-lg overflow-hidden mobile:max-w-[clamp(16rem,30vw,20rem)]
 									data-[open=true]:translate-y-0 data-[open=false]:translate-y-full
 									mobile:data-[open=true]:block mobile:data-[open=false]:hidden"

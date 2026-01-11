@@ -4,12 +4,11 @@ import { useState, useEffect, useMemo } from "react";
 import PanelControl from "./panel-control";
 import { Layers } from "lucide-react";
 import GoogleMap from "@/components/gl-map/google-map";
-import { Polygon } from "@/components/gl-map/geometry/polygon";
 import { Cluster } from "@/components/gl-map/cluster";
 import ZoneCard from "./zone-card";
 import { useSearchParams } from "next/navigation";
 import Lightbox from "./light-box";
-// import { useMap } from "@vis.gl/react-google-maps";
+import ZonePolygon from "./zone-polygon";
 
 type Poi = { key: string; location: google.maps.LatLngLiteral };
 
@@ -34,8 +33,6 @@ export default function MapPage() {
 	const [lightboxImages, setLightboxImages] = useState<string[]>([]);
 	const [lightboxIndex, setLightboxIndex] = useState(0);
 	const [selectedZone, setSelectedZone] = useState<string | null>(queryZone);
-
-	// const map = useMap();
 
 	useEffect(() => {
 		const fetchZones = async () => {
@@ -109,7 +106,7 @@ export default function MapPage() {
 	}, [zone, visible]);
 
 	return (
-		<main className="w-full h-[calc(100%-4rem)] mt-16">
+		<main className="w-full h-[calc(100%-4rem)] mt-16 overscroll-none">
 			{/* <div className="w-full h-full bg-red-300" /> */}
 			{/* Map Component */}
 			<GoogleMap
@@ -129,12 +126,11 @@ export default function MapPage() {
 					{zone.map(
 						(z) =>
 							visible[z.name]?.polygon && (
-								<Polygon
+								<ZonePolygon
 									key={z.name}
 									paths={z.paths}
-									strokeColor={z.color}
-									fillColor={z.color}
-									onClick={() => setSelectedZone(z.slug)}
+									color={z.color}
+									setSelectedZone={() => setSelectedZone(z.slug)}
 								/>
 							)
 					)}
@@ -155,7 +151,7 @@ export default function MapPage() {
 				/>
 				{isPanelOpen && (
 					<div
-						className="mobile:hidden inset-0 bg-black/80 fixed fade-in"
+						className="mobile:hidden inset-0 bg-black/80 fixed fade-in z-30"
 						onClick={(e: React.MouseEvent) => {
 							if (e.target === e.currentTarget) {
 								toggleOpenPanel();
