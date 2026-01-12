@@ -5,7 +5,7 @@ router = APIRouter(
 	tags=["building"],
 )
 
-building_data = {
+base_building = {
 	"name": "อาคารนวัตกรรมดิจิทัล (Digital Innovation Tower)",
 	"address": "123 ถ.สุขุมวิท เขตวัฒนา กรุงเทพฯ 10110",
 	"admin": "คุณสมชาย (IT Manager)",
@@ -20,11 +20,25 @@ building_data = {
 	],
 }
 
+building_data = {"*": base_building}
+
 
 @router.get("/{building}")
 async def get_building(building: str) -> dict[str, object]:
 	print(f"Requested building: {building}")
-	return building_data
+	# check if building exists
+	if building not in building_data:
+		return building_data["*"]
+	return building_data[building]
+
+
+@router.post("")
+async def create_building(new_building: dict[str, object]) -> dict[str, str]:
+	print(f"Creating new building with data: {new_building} {new_building.get('slug')}")
+	# Here you would normally save the new building data to your database
+	# copy base_building to new building_data
+	building_data[str(new_building.get("slug"))] = base_building.copy()
+	return {"message": "Building created successfully"}
 
 
 @router.put("/{building}")
@@ -33,10 +47,17 @@ async def update_building(
 ) -> dict[str, str]:
 	print(f"Updating building: {building} with data: {updated_data}")
 	# Here you would normally update the building data in your database
-	building_data.update(updated_data)
-	# update floor even if it not in updated_data
-	for i in ["floor", "admin", "tel"]:
-		if i not in updated_data:
-			building_data[i] = None
+	if building not in building_data:
+		building_data["*"].update(updated_data)
+		# update floor even if it not in updated_data
+		for i in ["floor", "admin", "tel"]:
+			if i not in updated_data:
+				building_data["*"][i] = None
+	else:
+		building_data[building].update(updated_data)
+		# update floor even if it not in updated_data
+		for i in ["floor", "admin", "tel"]:
+			if i not in updated_data:
+				building_data[building][i] = None
 
 	return {"message": f"Building {building} updated successfully"}

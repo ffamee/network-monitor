@@ -5,8 +5,8 @@ from app.routers import building, pings, zone
 
 app = FastAPI()
 
-# origin = ["http://localhost:3000", "http://localhost:8000", "http://192.168.1.184:3000"]
-origin = ["*"]
+origin = ["http://localhost:3000", "http://localhost:8000", "http://192.168.1.127:3000"]
+# origin = ["*"]
 
 app.add_middleware(
 	CORSMiddleware,
