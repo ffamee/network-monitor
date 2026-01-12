@@ -21,7 +21,10 @@ export function BuildingEdit({
 	);
 
 	return (
-		<div className="w-full mx-auto space-y-6 text-secondary-foreground/70">
+		<div
+			className="w-full mx-auto space-y-6 text-secondary-foreground/70"
+			data-testid="edit-building-form"
+		>
 			<div className="text-[clamp(0.5rem,3vw,1.5rem)] text-secondary-foreground/90 font-semibold">
 				Edit Building Infomation
 			</div>

@@ -27,7 +27,7 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 								title="แก้ไขข้อมูลอาคาร"
 								className="cursor-pointer text-card-foreground/50 hover:text-primary/75 transition-colors"
 							>
-								<Pencil size={16} />
+								<Pencil size={16} data-testid="edit-building-info-trigger" />
 							</Link>
 						</div>
 					</div>
