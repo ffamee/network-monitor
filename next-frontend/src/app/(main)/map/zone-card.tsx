@@ -3,7 +3,13 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import ImageGrid from "./image-grid";
-import { ChevronDown, ImageOff, LaptopMinimal, Server } from "lucide-react";
+import {
+	ChevronDown,
+	ImageOff,
+	LaptopMinimal,
+	Server,
+	SquareArrowOutUpRight,
+} from "lucide-react";
 import {
 	Drawer,
 	DrawerContent,
@@ -14,12 +20,14 @@ import {
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "usehooks-ts";
 import Image from "next/image";
+import Link from "next/link";
 
 type ZoneInfo = {
 	name: string;
 	color: string;
 	locations: { key: string; location: google.maps.LatLngLiteral }[];
 	images: string[];
+	slug: string;
 };
 
 interface ZoneCardProps {
@@ -130,7 +138,19 @@ export default function ZoneCard(props: ZoneCardProps) {
 								{loading ? (
 									<Skeleton className="h-8 w-3/4 rounded" />
 								) : (
-									zoneData.name
+									<div className="flex items-center gap-4">
+										{zoneData.name}
+										<Link
+											target="_blank"
+											href={`/dashboard/${zoneData.slug}`}
+											title={`ไปที่โซน${zoneData.name}`}
+										>
+											<SquareArrowOutUpRight
+												size={16}
+												className="text-secondary-foreground/50"
+											/>
+										</Link>
+									</div>
 								)}
 								{loading ? (
 									<Skeleton className="h-6 w-5/6 rounded" />
@@ -280,7 +300,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 			<div className="hidden group-data-[state=expanded]:block h-auto">
 				<ImageGrid images={zoneData.images} show={props.setLightbox} />
 			</div>
-			<div className="text-lg font-semibold px-4">
+			<div className="text-lg font-semibold px-4 relative">
 				<input type="checkbox" id="collapse-toggle" className="peer hidden" />
 				<label
 					htmlFor="collapse-toggle"
@@ -295,6 +315,18 @@ export default function ZoneCard(props: ZoneCardProps) {
 						inventore. Vitae?
 					</span>
 				</label>
+				<div className="absolute right-2 top-2 px-2 group-data-[state=collapsed]:hidden">
+					<Link
+						target="_blank"
+						href={`/dashboard/${zoneData.slug}`}
+						title={`ไปที่โซน${zoneData.name}`}
+					>
+						<SquareArrowOutUpRight
+							size={16}
+							className="text-secondary-foreground/50"
+						/>
+					</Link>
+				</div>
 			</div>
 			<div className="hidden group-data-[state=expanded]:grid grid-cols-2 gap-2 px-4">
 				<div className="bg-secondary p-3 rounded-lg border border-ring hover:border-primary/75 hover:border-2 transition-colors">
