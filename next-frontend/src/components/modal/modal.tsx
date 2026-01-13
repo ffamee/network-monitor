@@ -11,7 +11,7 @@ export const Modal = ({
 }) => {
 	// if (!isOpen) return null;
 	const router = useRouter();
-	const handleClickOutside = (e: React.MouseEvent) => {
+	const handleMouseDownOutside = (e: React.MouseEvent) => {
 		if (e.target === e.currentTarget) {
 			router.back();
 		}
@@ -20,7 +20,7 @@ export const Modal = ({
 	return (
 		<div
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-			onClick={handleClickOutside}
+			onMouseDown={handleMouseDownOutside}
 		>
 			<div className="relative bg-popover rounded-2xl p-6 w-[75vw] max-w-md shadow-xl text-popover-foreground overflow-auto">
 				{/* Close button */}
