@@ -10,22 +10,6 @@ interface BuildingInfo {
 	images: string[];
 }
 
-// --- Mock Data ---
-// const buildingData: BuildingInfo = {
-// 	name: "อาคารนวัตกรรมดิจิทัล (Digital Innovation Tower)",
-// 	address: "123 ถ.สุขุมวิท เขตวัฒนา กรุงเทพฯ 10110",
-// 	admin: "คุณสมชาย (IT Manager)",
-// 	tel: "081-234-5678",
-// 	floor: 24,
-// 	totalProbes: 48,
-// 	images: [
-// 		"https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop",
-// 		"https://images.unsplash.com/photo-1558494949-ef526b0042a0?q=80&w=2668&auto=format&fit=crop",
-// 		"https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop",
-// 		"https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop",
-// 	],
-// };
-
 const healthMetrics = [
 	{
 		id: 1,

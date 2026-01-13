@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("test building page", () => {
 	test("Building Image Carousel displays control button", async ({ page }) => {
-		await page.goto("/dashboard/1");
+		await page.goto("/dashboard/zone-a/building-1");
 		const ImageCarousel = page.getByTestId("building-image-carousel");
 		await expect(ImageCarousel).toBeVisible();
 		await ImageCarousel.focus();
@@ -24,7 +24,7 @@ test.describe("test building page", () => {
 
 	test("Building Check Edit Modal Open", async ({ page }) => {
 		const buildingSlug = "building-1";
-		await page.goto("/dashboard/" + buildingSlug);
+		await page.goto("/dashboard/zone-a/" + buildingSlug);
 		const nav = page.getByRole("navigation");
 		await expect(nav).toBeVisible();
 		const editBuildingInfoTrigger = page.getByTestId(
@@ -38,14 +38,14 @@ test.describe("test building page", () => {
 		const CloseButton = page.getByRole("button", { name: "×" });
 		await expect(CloseButton).toBeVisible();
 		await CloseButton.click();
-		await expect(page).toHaveURL(`/dashboard/${buildingSlug}`);
+		await expect(page).toHaveURL(`/dashboard/zone-a/${buildingSlug}`);
 		await expect(editBuildingForm).toBeHidden();
 		await expect(nav).toBeVisible();
 	});
 
 	test("Building Edit Modal Close on Outside Click", async ({ page }) => {
 		const buildingSlug = "building-1";
-		await page.goto("/dashboard/" + buildingSlug);
+		await page.goto("/dashboard/zone-a/" + buildingSlug);
 		const editBuildingInfoTrigger = page.getByTestId(
 			"edit-building-info-trigger"
 		);
@@ -55,13 +55,13 @@ test.describe("test building page", () => {
 		await expect(editBuildingForm).toBeVisible();
 		await expect(page).toHaveURL(`/edit/building/${buildingSlug}`);
 		await page.mouse.click(5, 5); // Click outside the modal
-		await expect(page).toHaveURL(`/dashboard/${buildingSlug}`);
+		await expect(page).toHaveURL(`/dashboard/zone-a/${buildingSlug}`);
 		await expect(editBuildingForm).toBeHidden();
 	});
 
 	test("Building Edit Modal Reload", async ({ page }) => {
 		const buildingSlug = "building-1";
-		await page.goto("/dashboard/" + buildingSlug);
+		await page.goto("/dashboard/zone-a/" + buildingSlug);
 		const editBuildingInfoTrigger = page.getByTestId(
 			"edit-building-info-trigger"
 		);
@@ -95,7 +95,7 @@ test.describe("test building page", () => {
 		);
 		expect(createResponse.ok()).toBeTruthy();
 
-		await page.goto("/dashboard/" + buildingSlug);
+		await page.goto("/dashboard/zone-a/" + buildingSlug);
 		const editBuildingInfoTrigger = page.getByTestId(
 			"edit-building-info-trigger"
 		);
@@ -118,6 +118,6 @@ test.describe("test building page", () => {
 		await expect(name).toHaveCount(2);
 		await expect(name.first()).toBeVisible();
 		await expect(name.last()).toBeVisible();
-		await expect(page).toHaveURL(`/dashboard/${buildingSlug}`);
+		await expect(page).toHaveURL(`/dashboard/zone-a/${buildingSlug}`);
 	});
 });
