@@ -9,7 +9,9 @@ router = APIRouter(
 
 zones: list[dict[str, object]] = [
 	{
+		"id": 1,
 		"name": "Zone A",
+		"description": "พื้นที่โซน A ครอบคลุมส่วนหน้าของอาคารและพื้นที่สีเขียวรอบๆ",
 		"color": "#FF5733",
 		"paths": [
 			{"lat": 13.850329, "lng": 100.565729},
@@ -84,7 +86,9 @@ zones: list[dict[str, object]] = [
 		"slug": "zone-a",
 	},
 	{
+		"id": 2,
 		"name": "Zone B",
+		"description": "พื้นที่โซน B ครอบคลุมส่วนหลังของอาคารและลานจอดรถ",
 		"color": "#33C1FF",
 		"paths": [
 			{"lat": 13.852444, "lng": 100.572619},
@@ -117,7 +121,9 @@ zones: list[dict[str, object]] = [
 		"slug": "zone-b",
 	},
 	{
+		"id": 3,
 		"name": "Zone C",
+		"description": "พื้นที่โซน C ครอบคลุมทางเดินรอบอาคารและพื้นที่นันทนาการ",
 		"color": "#75FF33",
 		"paths": [
 			{"lat": 13.855420, "lng": 100.566238},
@@ -192,7 +198,9 @@ zones: list[dict[str, object]] = [
 		"slug": "zone-c",
 	},
 	{
+		"id": 4,
 		"name": "Zone D",
+		"description": "พื้นที่โซน D ครอบคลุมทางเดินด้านข้างของอาคารและสวนหย่อม",
 		"color": "#FF33A8",
 		"paths": [
 			{"lat": 13.849392, "lng": 100.576674},
@@ -250,7 +258,9 @@ zones: list[dict[str, object]] = [
 		"slug": "zone-d",
 	},
 	{
+		"id": 5,
 		"name": "Zone E",
+		"description": "พื้นที่โซน E ครอบคลุมทางเดินด้านหลังของอาคารและพื้นที่บริการ",
 		"color": "#FFC133",
 		"paths": [
 			{"lat": 13.856134, "lng": 100.572567},
@@ -375,10 +385,35 @@ async def get_zone(zone_slug: str) -> dict[str, object]:
 		lambda z: z["slug"] == zone_slug,
 		all_zones,
 	)
-	if res:
-		return {**list(res)[0], "images": images}
+	result = list(res)[0] if res else None
+	if result and res:
+		return {
+			**result,
+			"images": images,
+			"totalBuildings": 8,
+			"totalProbes": len(result["locations"]),
+		}
 	return {"error": "Zone not found"}
-	# for zone in all_zones:
-	# 	if str(zone["name"]).lower().replace(" ", "-") == zone_slug.lower():
-	# 		return {**zone, "images": images}
-	# return {"error": "Zone not found"}
+
+
+# edit zone put api
+@router.put("/{zone_slug}")
+async def update_zone(
+	zone_slug: str, updated_data: dict[str, object]
+) -> dict[str, str]:
+	print(f"Updating zone: {zone_slug} with data: {updated_data}")
+	# Here you would normally update the zone data in your database
+	for zone in zones:
+		if zone["slug"] == zone_slug:
+			zone.update(updated_data)
+			# update floor even if it not in updated_data
+			for i in ["description"]:
+				if i not in updated_data:
+					zone[i] = None
+			# update slug to match zone name ** need slugify function here **
+			zone["slug"] = str(zone["name"]).lower().replace(" ", "-")
+			return {
+				"message": f"Zone {zone_slug} updated successfully",
+				"zoneId": str(zone["slug"]),
+			}
+	return {"message": f"Zone {zone_slug} not found"}
