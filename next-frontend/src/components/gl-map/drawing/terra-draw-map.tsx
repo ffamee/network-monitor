@@ -62,143 +62,146 @@ export const DrawingManager = ({
 	// const onPathChangeRef = onPathChange);
 	const hasInitialPaths = useRef<boolean>(true);
 	const initialPathsRef = useRef<string | null>(initialPaths);
+	const colorRef = useRef<string | undefined>(color);
 
 	useEffect(() => {
 		// 1. เช็คความพร้อมของ Map และ Div (แก้ Error addEventListener null)
 		// if (!map || !window.google || !map.getDiv()) return;
 		if (!map || !window.google) return;
 
-		const adapter = new TerraDrawGoogleMapsAdapter({
-			map,
-			lib: window.google.maps,
-			coordinatePrecision: 9,
-		});
+		map.addListener("projection_changed", () => {
+			const adapter = new TerraDrawGoogleMapsAdapter({
+				map,
+				lib: window.google.maps,
+				coordinatePrecision: 9,
+			});
 
-		const draw = new TerraDraw({
-			adapter,
-			modes: [
-				new TerraDrawSelectMode({
-					flags: {
-						polygon: {
-							feature: {
-								draggable: true, // <--- สำคัญ: ลากย้ายทั้งก้อนได้ (คลิกที่สี)
-								rotateable: true,
-								coordinates: {
-									midpoints: true, // มีจุดกลางให้ดึงเพิ่ม
-									draggable: true, // ลากย้ายจุดได้
-									deletable: true, // ลบจุดได้ (เลือกจุดแล้วกด Delete ที่คีย์บอร์ด)
+			const draw = new TerraDraw({
+				adapter,
+				modes: [
+					new TerraDrawSelectMode({
+						flags: {
+							polygon: {
+								feature: {
+									draggable: true, // <--- สำคัญ: ลากย้ายทั้งก้อนได้ (คลิกที่สี)
+									rotateable: true,
+									coordinates: {
+										midpoints: true, // มีจุดกลางให้ดึงเพิ่ม
+										draggable: true, // ลากย้ายจุดได้
+										deletable: true, // ลบจุดได้ (เลือกจุดแล้วกด Delete ที่คีย์บอร์ด)
+									},
 								},
 							},
 						},
-					},
-				}),
-				new TerraDrawPolygonMode({
-					editable: true,
-					styles: {
-						fillColor: (color as HexColor) ?? "#3b82f6",
-						fillOpacity: 0.4,
-						outlineColor: (color as HexColor) ?? "#2563eb",
-						outlineWidth: 2,
-					},
-				}),
-			],
-		});
+					}),
+					new TerraDrawPolygonMode({
+						editable: true,
+						styles: {
+							fillColor: (colorRef.current as HexColor) ?? "#3b82f6",
+							fillOpacity: 0.4,
+							outlineColor: (colorRef.current as HexColor) ?? "#2563eb",
+							outlineWidth: 2,
+						},
+					}),
+				],
+			});
 
-		draw.start();
-		drawRef.current = draw;
+			draw.start();
+			drawRef.current = draw;
 
-		// 2. รอให้ Ready ก่อนค่อยเริ่มทำงาน
-		draw.on("ready", () => {
-			console.log("Terra Draw Ready");
-			// โหลด Initial Paths ถ้ามี
-			if (
-				hasInitialPaths.current &&
-				initialPathsRef.current &&
-				initialPathsRef.current.length > 0
-			) {
-				hasInitialPaths.current = false;
-				try {
-					const geojson = JSON.parse(initialPathsRef.current);
-					if (geojson.type === "FeatureCollection") {
-						draw.addFeatures(geojson.features);
-						// Init History
-						// history.current.push(draw.getSnapshot());
-					} else {
-						throw new Error(
-							"Invalid GeoJSON file: must be a FeatureCollection."
-						);
+			// 2. รอให้ Ready ก่อนค่อยเริ่มทำงาน
+			draw.on("ready", () => {
+				console.log("Terra Draw Ready");
+				// โหลด Initial Paths ถ้ามี
+				if (
+					hasInitialPaths.current &&
+					initialPathsRef.current &&
+					initialPathsRef.current.length > 0
+				) {
+					hasInitialPaths.current = false;
+					try {
+						const geojson = JSON.parse(initialPathsRef.current);
+						if (geojson.type === "FeatureCollection") {
+							draw.addFeatures(geojson.features);
+							// Init History
+							// history.current.push(draw.getSnapshot());
+						} else {
+							throw new Error(
+								"Invalid GeoJSON file: must be a FeatureCollection."
+							);
+						}
+					} catch (error) {
+						console.error("Error parsing GeoJSON file.", error);
 					}
-				} catch (error) {
-					console.error("Error parsing GeoJSON file.", error);
+				} else {
+					console.log(hasInitialPaths.current, initialPathsRef.current);
 				}
-			} else {
-				console.log(hasInitialPaths.current, initialPathsRef.current);
-			}
-			// Init History
-			// history.current.push(draw.getSnapshot());
+				// Init History
+				// history.current.push(draw.getSnapshot());
+			});
+
+			// 3. จัดการ Event Select / Deselect
+			draw.on("select", (id) => {
+				// id จะส่งมาเป็น string ถ้าเลือก Feature
+				// แต่อาจจะเป็น object ถ้าเลือก vertex (เราสนใจแค่ Feature ID เพื่อลบทั้งก้อน)
+				if (typeof id === "string") {
+					setSelectedId(id);
+					console.log("Selected:", id);
+				}
+			});
+
+			draw.on("deselect", () => {
+				setSelectedId(null);
+				console.log("Deselected");
+			});
+
+			// 4. จัดการ Change (Undo/Redo + Extract)
+			draw.on("change", () => {
+				if (isRestoring.current) return;
+
+				if (debounceTime.current) {
+					clearTimeout(debounceTime.current);
+				}
+
+				debounceTime.current = setTimeout(() => {
+					const snapshot = draw.getSnapshot();
+					const processedSnapshot = processSnapshotForUndo(snapshot);
+					// history.current.push(processedSnapshot);
+					// redoHistory.current = [];
+
+					const isFinished = processedSnapshot.some(
+						(f) =>
+							f.properties.mode === "select" || f.properties.currentlyDrawing
+					);
+
+					if (isFinished) return; // ยังวาดไม่เสร็จ ไม่ต้องอัพเดท
+
+					// แปลงเป็น GeoJSON แล้วส่งกลับ
+					const geojson = {
+						type: "FeatureCollection",
+						features: processedSnapshot,
+					};
+					const data = JSON.stringify(geojson, null, 4);
+					initialPathsRef.current = data;
+					onPathChange(data);
+				}, 300);
+				// Extract Path Logic
+				// const polygonFeature = snapshot.find(
+				// 	(f) => f.geometry.type === "Polygon"
+				// );
+				// if (polygonFeature) {
+				// 	const coordinates = polygonFeature.geometry.coordinates[0].map(
+				// 		(coord: any) => ({
+				// 			lat: coord[1],
+				// 			lng: coord[0],
+				// 		})
+				// 	);
+				// 	onPathChange(coordinates);
+				// } else {
+				// 	onPathChange([]);
+				// }
+			});
 		});
-
-		// 3. จัดการ Event Select / Deselect
-		draw.on("select", (id) => {
-			// id จะส่งมาเป็น string ถ้าเลือก Feature
-			// แต่อาจจะเป็น object ถ้าเลือก vertex (เราสนใจแค่ Feature ID เพื่อลบทั้งก้อน)
-			if (typeof id === "string") {
-				setSelectedId(id);
-				console.log("Selected:", id);
-			}
-		});
-
-		draw.on("deselect", () => {
-			setSelectedId(null);
-			console.log("Deselected");
-		});
-
-		// 4. จัดการ Change (Undo/Redo + Extract)
-		draw.on("change", () => {
-			if (isRestoring.current) return;
-
-			if (debounceTime.current) {
-				clearTimeout(debounceTime.current);
-			}
-
-			debounceTime.current = setTimeout(() => {
-				const snapshot = draw.getSnapshot();
-				const processedSnapshot = processSnapshotForUndo(snapshot);
-				// history.current.push(processedSnapshot);
-				// redoHistory.current = [];
-
-				const isFinished = processedSnapshot.some(
-					(f) => f.properties.mode === "select" || f.properties.currentlyDrawing
-				);
-
-				if (isFinished) return; // ยังวาดไม่เสร็จ ไม่ต้องอัพเดท
-
-				// แปลงเป็น GeoJSON แล้วส่งกลับ
-				const geojson = {
-					type: "FeatureCollection",
-					features: processedSnapshot,
-				};
-				const data = JSON.stringify(geojson, null, 4);
-				initialPathsRef.current = data;
-				onPathChange(data);
-			}, 300);
-			// Extract Path Logic
-			// const polygonFeature = snapshot.find(
-			// 	(f) => f.geometry.type === "Polygon"
-			// );
-			// if (polygonFeature) {
-			// 	const coordinates = polygonFeature.geometry.coordinates[0].map(
-			// 		(coord: any) => ({
-			// 			lat: coord[1],
-			// 			lng: coord[0],
-			// 		})
-			// 	);
-			// 	onPathChange(coordinates);
-			// } else {
-			// 	onPathChange([]);
-			// }
-		});
-
 		return () => {
 			// Cleanup เช็คก่อน stop
 			if (drawRef.current) {
@@ -207,7 +210,35 @@ export const DrawingManager = ({
 				hasInitialPaths.current = true;
 			}
 		};
-	}, [map, color, onPathChange]);
+	}, [map, onPathChange]);
+
+	useEffect(() => {
+		if (!drawRef.current) return;
+		console.log("Updating polygon color to:", color);
+		colorRef.current = color;
+		drawRef.current.updateModeOptions("polygon", {
+			// editable: true,
+			styles: {
+				fillColor: (colorRef.current as HexColor) ?? "#3b82f6",
+				// fillOpacity: 0.4,
+				outlineColor: (colorRef.current as HexColor) ?? "#2563eb",
+				// outlineWidth: 2,
+			},
+		});
+		const snapShot = drawRef.current.getSnapshot();
+		if (snapShot && snapShot.length > 0) {
+			// ปักธงว่า "กำลังรีเฟรชสีนะ" ห้ามบันทึก History
+			isRestoring.current = true;
+
+			drawRef.current.clear(); // ลบของเก่า (ที่เป็นสีเดิม)
+			drawRef.current.addFeatures(snapShot); // ใส่กลับเข้าไป (TerraDraw จะวาดใหม่ด้วยสีใหม่)
+
+			// ปลดล็อค History (ใช้ setTimeout เพื่อรอให้ Event จบก่อน)
+			setTimeout(() => {
+				isRestoring.current = false;
+			}, 0);
+		}
+	}, [color]);
 
 	// --- Actions ---
 
