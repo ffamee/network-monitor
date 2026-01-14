@@ -417,3 +417,9 @@ async def update_zone(
 				"zoneId": str(zone["slug"]),
 			}
 	return {"message": f"Zone {zone_slug} not found"}
+
+
+@router.patch("/mapping/{zone_slug}")
+async def update_zone_mapping(zone_slug: str, mapping_data: dict[str, object]) -> None:
+	await asyncio.sleep(1)
+	print(f"Updating zone mapping: {zone_slug} with data: {mapping_data}")
