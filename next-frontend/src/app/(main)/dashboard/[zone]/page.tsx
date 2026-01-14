@@ -131,7 +131,7 @@ export default async function ZonePage({
 									<Link
 										href={`/edit/zone/${zone}`}
 										title="แก้ไขข้อมูลโซน"
-										className="cursor-pointer text-card-foreground/50 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
+										className="cursor-pointer text-accent/30 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
 									>
 										<Pencil
 											data-testid="edit-zone-info-trigger"
@@ -174,7 +174,7 @@ export default async function ZonePage({
 
 					{/* Buildings Grid */}
 					<div>
-						<h3 className="text-[clamp(1.25rem,4vw,1.5rem)] font-semibold text-white mb-4 flex items-center gap-2">
+						<h3 className="text-[clamp(1.25rem,4vw,1.5rem)] font-semibold text-foreground mb-4 flex items-center gap-2">
 							<LayoutGrid size={20} className="text-primary" />
 							Buildings in this Zone
 						</h3>

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import PanelControl from "./panel-control";
 import { Layers } from "lucide-react";
 import GoogleMap from "@/components/gl-map/google-map";
-import { Cluster } from "@/components/gl-map/cluster";
+import { Cluster } from "@/components/gl-map/cluster/cluster";
 import ZoneCard from "./zone-card";
 import { useSearchParams } from "next/navigation";
 import Lightbox from "./light-box";

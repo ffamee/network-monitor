@@ -15,6 +15,7 @@ interface GoogleMapProps {
 		east: number;
 		west: number;
 	};
+	clickableIcons?: boolean;
 }
 
 export default function GoogleMap({
@@ -58,6 +59,7 @@ export default function GoogleMap({
 						},
 						strictBounds: true,
 					}}
+					clickableIcons={props?.clickableIcons ?? false}
 					onClick={(e) => console.log(e)}
 				>
 					{children}
