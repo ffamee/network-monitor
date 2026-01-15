@@ -1,12 +1,7 @@
-import {
-	ArrowRight,
-	Building,
-	LaptopMinimal,
-	LayoutGrid,
-	Pencil,
-} from "lucide-react";
-import Image from "next/image";
+import { Building, LaptopMinimal, LayoutGrid, Pencil } from "lucide-react";
 import Link from "next/link";
+import BuildingCard from "./building-card";
+import AddButton from "./add-button";
 
 type ZoneData = {
 	id: string;
@@ -131,7 +126,7 @@ export default async function ZonePage({
 									<Link
 										href={`/edit/zone/${zone}`}
 										title="แก้ไขข้อมูลโซน"
-										className="cursor-pointer text-accent/30 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
+										className="cursor-pointer text-white/50 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
 									>
 										<Pencil
 											data-testid="edit-zone-info-trigger"
@@ -174,9 +169,12 @@ export default async function ZonePage({
 
 					{/* Buildings Grid */}
 					<div>
-						<h3 className="text-[clamp(1.25rem,4vw,1.5rem)] font-semibold text-foreground mb-4 flex items-center gap-2">
-							<LayoutGrid size={20} className="text-primary" />
-							Buildings in this Zone
+						<h3 className="text-[clamp(1rem,4vw,1.5rem)] font-semibold text-foreground mb-4 flex items-center gap-2 justify-between">
+							<div className="flex items-center gap-2">
+								<LayoutGrid size={20} className="text-primary" />
+								Buildings in this Zone
+							</div>
+							<AddButton zone={zone} />
 						</h3>
 						<div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-4">
 							{buildings.map((building) => (
@@ -184,39 +182,9 @@ export default async function ZonePage({
 									href={`/dashboard/${zone}/${building.slug}`}
 									key={building.id}
 									// onClick={() => onSelectBuilding(building.id)}
-									className="group bg-card border border-ring/50 hover:border-primary rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:-translate-y-1"
+									className="group bg-card border border-ring/50 hover:border-primary hover:border-2 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:-translate-y-1"
 								>
-									<div className="h-40 relative overflow-hidden">
-										<Image
-											src={building.image}
-											alt={building.name}
-											fill
-											className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-										/>
-										<div className="absolute inset-0 bg-linear-to-t from-stone-900 via-transparent to-transparent opacity-80"></div>
-										{/* <div className="absolute top-3 right-3">
-										<StatusBadge status={building.status} />
-									</div> */}
-									</div>
-									<div className="p-5">
-										<div className="text-lg font-bold text-card-foreground mb-1 group-hover:text-primary transition-colors">
-											{building.name}
-										</div>
-										<p className="text-xs text-secondary-foreground/60 mb-4 line-clamp-1">
-											{/* {building.description} */}
-											abc
-										</p>
-
-										<div className="flex items-center justify-between pt-4 border-t border-secondary-foreground/30">
-											<div className="flex items-center gap-2 text-xs text-secondary-foreground/80">
-												<LaptopMinimal size={14} className="text-emerald-500" />
-												{building.totalProbes} Probes
-											</div>
-											<div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-secondary-foreground group-hover:bg-primary group-hover:text-white transition-all">
-												<ArrowRight size={14} />
-											</div>
-										</div>
-									</div>
+									<BuildingCard building={building} />
 								</Link>
 							))}
 						</div>

@@ -89,7 +89,7 @@ test.describe("test building page", () => {
 			"http://localhost:8000/building",
 			{
 				data: {
-					slug: buildingSlug,
+					name: buildingSlug,
 				},
 			}
 		);

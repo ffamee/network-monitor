@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { editZone } from "@/actions/zone-edit.action";
 
-export function ZoneEdit({
+export function ZoneEditForm({
 	slug,
 	zone,
 }: {

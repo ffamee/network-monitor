@@ -81,6 +81,7 @@ export async function editZone(
 			message: `Update Error: ${
 				error instanceof Error ? error.message : "Failed to Update Building."
 			}`,
+			inputs: rawData,
 		};
 	}
 

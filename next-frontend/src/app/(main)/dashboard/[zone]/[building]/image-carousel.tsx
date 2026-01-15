@@ -40,6 +40,14 @@ export function BuildingImageCarousel(props: BuildingCarouselProps) {
 		api.scrollTo(idx);
 	};
 
+	if (!props.images || props.images.length === 0) {
+		return (
+			<div className="w-full h-full min-w-xs lg:min-w-md bg-accent rounded-2xl flex items-center justify-center">
+				{"No images available."}
+			</div>
+		);
+	}
+
 	return (
 		<Carousel
 			setApi={setApi}

@@ -162,7 +162,14 @@ export default async function BuildingPage({
 											</Skeleton>
 										}
 									>
-										<GoogleMap {...{ props: { className: "aspect-square" } }} />
+										<GoogleMap
+											{...{
+												props: {
+													className: "aspect-square",
+													clickableIcons: true,
+												},
+											}}
+										/>
 									</Suspense>
 								</TabsContent>
 							</div>

@@ -37,6 +37,10 @@ const BuildingSchema = z.object({
 			})
 			.optional()
 	),
+	zoneId: z.preprocess(
+		emptyString,
+		z.string().trim().min(1, { message: "Zone ID ต้องไม่ว่างเปล่า" })
+	),
 });
 
 export type State = {
@@ -51,14 +55,14 @@ export type State = {
 };
 
 // Function Signature: [Arguments from bind], [prevState], [formData]
-export async function editBuilding(
-	buildingId: string, // รับค่าจาก .bind()
+export async function addBuilding(
+	zoneId: string, // รับค่าจาก .bind()
 	prevState: State | null, // รับค่าจาก useActionState
 	formData: FormData // รับค่าจาก Form Submit
 ): Promise<State> {
 	// 1. Validate Form Data
 	const rawData = Object.fromEntries(formData);
-	const validatedFields = BuildingSchema.safeParse(rawData);
+	const validatedFields = BuildingSchema.safeParse({ ...rawData, zoneId });
 
 	// console.log("validatedFields:", validatedFields);
 
@@ -75,38 +79,35 @@ export async function editBuilding(
 
 	// 3. Update Database
 	let newSlug: { zone: string; building: string } = {
-		zone: "zone-a",
-		building: buildingId,
+		zone: zoneId ?? "zone-a",
+		building: "",
 	};
 	try {
 		console.log(
-			`Updating building ${buildingId} with data:`,
+			`Add new building to ${zoneId} with data:`,
 			validatedFields.data
 		);
-		const res = await fetch(
-			`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}`,
-			{
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-				body: JSON.stringify(validatedFields.data),
-			}
-		);
+		const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/building`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			credentials: "include",
+			body: JSON.stringify(validatedFields.data),
+		});
 		if (!res.ok) {
 			throw new Error(res.statusText);
 		}
 		const data = await res.json();
 		newSlug = {
 			zone: data.zoneId ?? "zone-a",
-			building: data.buildingId ?? buildingId,
+			building: data.building,
 		};
 		// await db.building.update({ where: { id: buildingId }, data: ... })
 	} catch (error) {
 		return {
-			message: `Update Error: ${
-				error instanceof Error ? error.message : "Failed to Update Building."
+			message: `Adding Error: ${
+				error instanceof Error ? error.message : "Failed to Add Building."
 			}`,
 			inputs: rawData,
 		};

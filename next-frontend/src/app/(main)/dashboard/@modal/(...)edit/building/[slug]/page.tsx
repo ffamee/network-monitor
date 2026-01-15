@@ -1,4 +1,4 @@
-import { BuildingEdit } from "@/app/(action)/edit/building/[slug]/edit-building-form";
+import { BuildingEditForm } from "@/app/(action)/edit/building/[slug]/edit-building-form";
 import { Modal } from "@/components/modal/modal";
 
 export default async function EditBuildingModal({
@@ -19,7 +19,7 @@ export default async function EditBuildingModal({
 	// return <Modal>Building Edit Modal Content {slug}</Modal>;
 	return (
 		<Modal>
-			<BuildingEdit {...{ slug, building }} />
+			<BuildingEditForm {...{ slug, building }} />
 		</Modal>
 	);
 }

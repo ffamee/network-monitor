@@ -1,4 +1,4 @@
-import { ZoneEdit } from "@/app/(action)/edit/zone/[slug]/edit-zone-form";
+import { ZoneEditForm } from "@/app/(action)/edit/zone/[slug]/edit-zone-form";
 import { Modal } from "@/components/modal/modal";
 
 export default async function EditZoneModal({
@@ -19,7 +19,7 @@ export default async function EditZoneModal({
 	// return <Modal>Building Edit Modal Content {slug}</Modal>;
 	return (
 		<Modal>
-			<ZoneEdit {...{ slug, zone }} />
+			<ZoneEditForm {...{ slug, zone }} />
 		</Modal>
 	);
 }
