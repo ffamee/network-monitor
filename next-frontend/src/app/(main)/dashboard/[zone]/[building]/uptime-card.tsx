@@ -4,7 +4,7 @@ import { ShieldCheck } from "lucide-react";
 export const UpTimeCard = async () => {
 	await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate async data fetching
 	return (
-		<Card className="ring-foreground/20 shadow-md h-full lg:h-auto rounded-4xl">
+		<Card className="ring-foreground/20 shadow-md h-full lg:h-auto rounded-4xl lg:col-span-2">
 			<CardContent className="h-full">
 				<div className="flex flex-col h-full justify-between">
 					<div className="flex justify-between items-center">

@@ -1,5 +1,6 @@
 "use client";
 
+import { StatusBadge } from "@/components/badge/status-badge";
 import {
 	Card,
 	CardAction,
@@ -16,6 +17,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { CheckCircle2, LaptopMinimal, Search } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 interface Probe {
@@ -182,7 +184,7 @@ const initialProbes: Probe[] = [
 	},
 ];
 
-export const ProbeTable = () => {
+export const ProbeTable = ({ building }: { building: string }) => {
 	const [searchTerm, setSearchTerm] = useState("");
 	// const headerRef = useRef(null);
 	// const [headerRowWidth, setHeaderRowWidth] = useState<number>(0);
@@ -275,7 +277,13 @@ export const ProbeTable = () => {
 										/>
 									</TableCell>
 									<TableCell className="py-3 pl-2">
-										<div className="flex items-center gap-3">
+										<Link
+											href={`${building}/${probe.id
+												.toLowerCase()
+												.replace(/ /g, "-")}`}
+											title={`ดูรายละเอียดของ ${probe.name}`}
+											className="flex items-center gap-3"
+										>
 											<div
 												className="p-2 bg-muted rounded-lg text-muted-foreground group-hover:text-primary group-hover:bg-destructive/30 transition-colors
 																			peer-has-checked:bg-primary"
@@ -288,7 +296,7 @@ export const ProbeTable = () => {
 													{probe.id}
 												</div>
 											</div>
-										</div>
+										</Link>
 									</TableCell>
 									<TableCell className="py-3 font-mono">{probe.ip}</TableCell>
 									<TableCell className="py-3">{probe.location}</TableCell>
@@ -322,38 +330,5 @@ export const ProbeTable = () => {
 				)}
 			</CardContent>
 		</Card>
-	);
-};
-
-const StatusBadge = ({ status }: { status: string }) => {
-	const styles = {
-		online: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-		offline: "bg-rose-500/10 text-rose-500 border-rose-500/20",
-		warning: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-	};
-
-	const labels = {
-		online: "ปกติ",
-		offline: "ออฟไลน์",
-		warning: "แจ้งเตือน",
-	};
-
-	return (
-		<span
-			className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-				styles[status as keyof typeof styles] || styles.offline
-			} flex items-center gap-1.5 w-fit`}
-		>
-			<span
-				className={`w-1.5 h-1.5 rounded-full ${
-					status === "online"
-						? "bg-emerald-500"
-						: status === "warning"
-						? "bg-amber-500"
-						: "bg-rose-500"
-				}`}
-			></span>
-			{labels[status as keyof typeof labels]}
-		</span>
 	);
 };

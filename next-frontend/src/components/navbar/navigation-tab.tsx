@@ -18,7 +18,7 @@ export default function MainNavigationTab() {
 	];
 
 	return (
-		<nav className="hidden md:grid md:grid-cols-3 items-center gap-1 p-1 bg-sidebar-accent rounded-full border border-sidebar-ring w-full max-w-md">
+		<nav className="hidden md:grid md:grid-cols-3 items-center gap-1 p-1 bg-sidebar-accent rounded-full border border-sidebar-ring w-full max-w-sm">
 			{tabsList.map((item) => (
 				<Link
 					key={item.name}

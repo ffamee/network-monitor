@@ -176,11 +176,19 @@ export default async function BuildingPage({
 						</Tabs>
 					</div>
 					<InfoCard {...buildingData} slug={building} />
-					<div className="grid grid-cols-2 gap-4 h-full">
-						<Suspense fallback={<Skeleton className="h-full rounded-4xl" />}>
+					<div className="grid grid-cols-2 lg:grid-rows-2 gap-4 h-full">
+						<Suspense
+							fallback={
+								<Skeleton className="h-full rounded-4xl lg:col-span-2" />
+							}
+						>
 							<UpTimeCard />
 						</Suspense>
-						<Suspense fallback={<Skeleton className="h-full rounded-4xl" />}>
+						<Suspense
+							fallback={
+								<Skeleton className="h-full rounded-4xl lg:col-span-2" />
+							}
+						>
 							<AlertCard />
 						</Suspense>
 					</div>
@@ -215,7 +223,7 @@ export default async function BuildingPage({
 					</div>
 				</div>
 				{/* 7. Probe Table (Span 12 cols) - Row 3 */}
-				<ProbeTable />
+				<ProbeTable building={building} />
 			</main>
 		</div>
 	);

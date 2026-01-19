@@ -23,7 +23,7 @@ export default function CurrentTime() {
 	}
 
 	return (
-		<div className="hidden sm:flex items-center gap-2 text-sm text-sidebar-accent-foreground bg-sidebar-accent px-3 py-1.5 rounded-lg border border-sidebar-ring">
+		<div className="hidden lg:flex items-center gap-2 text-sm text-sidebar-accent-foreground bg-sidebar-accent px-3 py-1.5 rounded-lg border border-sidebar-ring">
 			<Clock size={16} />
 			<span className="font-mono">
 				{currentTime.toLocaleTimeString("th-TH")}
