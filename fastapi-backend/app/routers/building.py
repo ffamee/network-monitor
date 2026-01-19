@@ -37,8 +37,11 @@ async def create_building(new_building: dict[str, object]) -> dict[str, str]:
 	print(f"Creating new building with data: {new_building} {new_building.get('slug')}")
 	# Here you would normally save the new building data to your database
 	# copy base_building to new building_data
-	building_data[str(new_building.get("slug"))] = base_building.copy()
-	return {"message": "Building created successfully"}
+	slug = str(new_building.get("name")).lower().replace(" ", "-")
+	# building_data[slug] = base_building.copy()
+	# building_data[slug].update(new_building)
+	building_data[slug] = new_building
+	return {"message": "Building created successfully", "building": slug}
 
 
 @router.put("/{building}")

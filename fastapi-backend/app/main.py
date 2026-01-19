@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import building, pings, zone
+from app.routers import building, pings, probe, zone
 
 app = FastAPI()
 
@@ -19,6 +19,7 @@ app.add_middleware(
 app.include_router(pings.router)
 app.include_router(building.router)
 app.include_router(zone.router)
+app.include_router(probe.router)
 
 
 @app.get("/")
