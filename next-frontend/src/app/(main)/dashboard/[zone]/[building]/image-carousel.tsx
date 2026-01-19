@@ -21,7 +21,7 @@ interface BuildingCarouselProps {
 
 export function BuildingImageCarousel(props: BuildingCarouselProps) {
 	const plugins = useRef(
-		Autoplay({ delay: 5000, stopOnMouseEnter: true, stopOnInteraction: false })
+		Autoplay({ delay: 5000, stopOnMouseEnter: true, stopOnInteraction: false }),
 	);
 	const [api, setApi] = useState<CarouselApi>();
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,7 +42,7 @@ export function BuildingImageCarousel(props: BuildingCarouselProps) {
 
 	if (!props.images || props.images.length === 0) {
 		return (
-			<div className="w-full h-full min-w-xs lg:min-w-md bg-accent rounded-2xl flex items-center justify-center">
+			<div className="w-full h-full min-h-64 md:min-w-xs lg:min-w-md bg-accent rounded-2xl flex items-center justify-center">
 				{"No images available."}
 			</div>
 		);

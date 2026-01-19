@@ -29,7 +29,7 @@ export default function EditZoneMap({ color, slug }: EditZoneMapProps) {
 						},
 						body: JSON.stringify({ paths, color: polygonColor }),
 						credentials: "include",
-					}
+					},
 				);
 
 				if (res.ok) {
@@ -58,7 +58,7 @@ export default function EditZoneMap({ color, slug }: EditZoneMapProps) {
 
 	return (
 		<div className="w-full h-full relative">
-			<GoogleMap>
+			<GoogleMap props={{ className: "min-h-[50dvh]" }}>
 				<DrawingManager
 					initialPaths={paths}
 					onPathChange={setPaths}

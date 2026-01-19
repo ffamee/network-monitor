@@ -37,7 +37,12 @@ export default function GoogleMap({
 		: ColorScheme.FOLLOW_SYSTEM;
 
 	return (
-		<div className={cn("w-dvw max-w-full h-full max-h-full", props?.className)}>
+		<div
+			className={cn(
+				"w-dvw max-w-full h-full max-h-full text-black",
+				props?.className,
+			)}
+		>
 			<APIProvider apiKey={API_KEY} onLoad={() => console.log("Load map...")}>
 				<Map
 					reuseMaps={true}

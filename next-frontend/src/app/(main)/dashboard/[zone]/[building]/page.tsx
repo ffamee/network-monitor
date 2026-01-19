@@ -94,7 +94,7 @@ async function getBuildingData(buildingId: string) {
 				"Content-Type": "application/json",
 			},
 			credentials: "include",
-		}
+		},
 	);
 	if (!res.ok) {
 		throw new Error("Failed to fetch building data");
