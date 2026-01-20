@@ -22,13 +22,13 @@ export function BuildingAddForm({
 		null,
 	);
 
-	function cleanAddress(address: string): string {
-		// Regex นี้เช็คว่า ขึ้นต้นด้วยรหัส Plus Code (4+ตัวอักษร) ตามด้วยเครื่องหมาย + ตามด้วยอักษร
-		// แล้วตัดส่วนหน้าทิ้งไป
-		return address.replace(/^[A-Z0-9]{4}\+[A-Z0-9]{2,}\s*,?\s*/, "");
-	}
+	// function cleanAddress(address: string): string {
+	// 	// Regex นี้เช็คว่า ขึ้นต้นด้วยรหัส Plus Code (4+ตัวอักษร) ตามด้วยเครื่องหมาย + ตามด้วยอักษร
+	// 	// แล้วตัดส่วนหน้าทิ้งไป
+	// 	return address.replace(/^[A-Z0-9]{4}\+[A-Z0-9]{2,}\s*,?\s*/, "");
+	// }
 
-	const rename = cleanAddress(location?.address || "");
+	// const rename = cleanAddress(location?.address || "");
 
 	return (
 		<div

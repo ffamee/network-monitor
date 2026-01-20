@@ -14,12 +14,24 @@ export default async function EditBuildingModal({
 				"Content-Type": "application/json",
 			},
 			credentials: "include",
-		}
+		},
 	).then((res) => res.json());
 	// return <Modal>Building Edit Modal Content {slug}</Modal>;
 	return (
 		<Modal>
-			<BuildingEditForm {...{ slug, building }} />
+			<BuildingEditForm
+				{...{
+					slug,
+					building,
+					displayMode: "modal",
+					location: {
+						...(building.placeId && { placeId: building.placeId }),
+						lat: building.lat,
+						lng: building.lng,
+						...(building.address && { address: building.address }),
+					},
+				}}
+			/>
 		</Modal>
 	);
 }

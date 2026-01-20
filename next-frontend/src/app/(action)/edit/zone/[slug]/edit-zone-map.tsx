@@ -36,10 +36,10 @@ export default function EditZoneMap({ color, slug }: EditZoneMapProps) {
 					const data = await res.json();
 					console.log(data);
 				} else {
-					throw new Error("Failed to fetch zone mapping data");
+					throw new Error("Failed to update zone mapping data");
 				}
 			} catch (error) {
-				console.error("Error fetching zone mapping data:", error);
+				console.error("Error updating zone mapping data:", error);
 			} finally {
 				setSyncData(false);
 			}

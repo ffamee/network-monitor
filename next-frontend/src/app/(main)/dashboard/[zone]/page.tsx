@@ -2,6 +2,7 @@ import { Building, LaptopMinimal, LayoutGrid, Pencil } from "lucide-react";
 import Link from "next/link";
 import BuildingCard from "./building-card";
 import AddButton from "./add-button";
+import { ZoneNav } from "./zone-nav";
 
 type ZoneData = {
 	id: string;
@@ -20,7 +21,7 @@ async function getZoneData(zoneId: string) {
 				"Content-Type": "application/json",
 			},
 			credentials: "include",
-		}
+		},
 	);
 	if (!res.ok) {
 		throw new Error("Failed to fetch zone data");
@@ -119,24 +120,27 @@ export default async function ZonePage({
 					>
 						<div className="absolute inset-0 bg-linear-to-r from-stone-900 via-stone-900/80 to-transparent"></div>
 
-						<div className="relative z-10 p-[clamp(1rem,4vw,2rem)] max-w-2xl justify-between flex flex-col h-full">
-							<div className="text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white mb-2">
-								<div className="flex items-center gap-4">
-									{zoneData.name}
-									<Link
-										href={`/edit/zone/${zone}`}
-										title="แก้ไขข้อมูลโซน"
-										className="cursor-pointer text-white/50 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
-									>
-										<Pencil
-											data-testid="edit-zone-info-trigger"
-											className="w-[1em] h-[1em]"
-										/>
-									</Link>
+						<div className="relative z-10 p-[clamp(1rem,4vw,2rem)] w-full justify-between flex flex-col h-full">
+							<div className="flex justify-between w-full">
+								<div className="text-[clamp(1.5rem,4vw,2.5rem)] font-bold text-white mb-2">
+									<div className="flex items-center gap-4">
+										{zoneData.name}
+										<Link
+											href={`/edit/zone/${zone}`}
+											title="แก้ไขข้อมูลโซน"
+											className="cursor-pointer text-white/50 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
+										>
+											<Pencil
+												data-testid="edit-zone-info-trigger"
+												className="w-[1em] h-[1em]"
+											/>
+										</Link>
+									</div>
+									<p className="text-white/70 text-[clamp(0.875rem,2vw,1rem)] font-normal leading-relaxed">
+										{zoneData.description}
+									</p>
 								</div>
-								<p className="text-white/70 text-[clamp(0.875rem,2vw,1rem)] font-normal leading-relaxed">
-									{zoneData.description}
-								</p>
+								<ZoneNav zone={zone} />
 							</div>
 
 							<div className="flex items-center gap-6 mt-6">

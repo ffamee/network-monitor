@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
-export function ManageButton() {
+export function ZoneNav({ zone }: { zone: string }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -20,21 +20,15 @@ export function ManageButton() {
 					size="icon-lg"
 					className="border border-sidebar-ring bg-sidebar-accent transition-colors"
 				>
-					<Ellipsis className="h-[1.2rem] w-[1.2rem]" />
+					<Ellipsis className="h-[1.2rem] w-[1.2rem] text-stone-900" />
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
 				<DropdownMenuItem>
-					<Link href="/edit">Edit Probe</Link>
+					<Link href={`/map?zone=${zone}`}>Open Map</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem>
-					<Link href="/grafana">Open in Grafana</Link>
-				</DropdownMenuItem>
-				<DropdownMenuItem className="block lg:hidden">
-					<Link href="/refresh">Refresh</Link>
-				</DropdownMenuItem>
-				<DropdownMenuItem className="block md:hidden">
-					<Link href="/console">Open Console</Link>
+					<a href={`/edit/zone/${zone}`}>Edit Zone in full Page</a>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

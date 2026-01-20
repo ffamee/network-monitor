@@ -3,7 +3,6 @@ import { use, useRef, useState } from "react";
 import { BuildingAddForm } from "./add-building-form";
 import AddBuildingMap from "./add-building-map";
 import { MapHandler } from "./map-place";
-import { set } from "zod";
 
 export type LocationInfo = {
 	lat: number;
@@ -41,7 +40,7 @@ export default function AddBuildingPage({
 
 	return (
 		<div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
-			<AddBuildingMap slug={slug} onLocationSelect={setLocation} ref={mapRef} />
+			<AddBuildingMap onLocationSelect={setLocation} ref={mapRef} />
 			{/* {location && <pre>{JSON.stringify(location, null, 2)}</pre>} */}
 			<div className="py-4 md:py-0 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
 				<BuildingAddForm {...{ zone: slug, location, fetchPlace }} />

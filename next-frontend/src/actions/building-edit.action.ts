@@ -11,14 +11,14 @@ const emptyNumber = (val: string) =>
 const BuildingSchema = z.object({
 	name: z.preprocess(
 		emptyString,
-		z.string().trim().min(1, { message: "ชื่อต้องไม่ว่างเปล่า" })
+		z.string().trim().min(1, { message: "ชื่อต้องไม่ว่างเปล่า" }),
 	),
 	floor: z.preprocess(
 		emptyNumber,
 		z
 			.int({ message: "ชั้นต้องเป็นเลขจำนวนเต็ม" })
 			.min(0, { message: "ชั้นต้องมากกว่าเท่ากับ 0" })
-			.optional()
+			.optional(),
 	),
 	admin: z.preprocess(
 		emptyString,
@@ -26,7 +26,7 @@ const BuildingSchema = z.object({
 			.string()
 			.trim()
 			.min(1, { message: "ชื่อผู้ดูแลต้องไม่ว่างเปล่า" })
-			.optional()
+			.optional(),
 	),
 	tel: z.preprocess(
 		emptyString,
@@ -35,8 +35,24 @@ const BuildingSchema = z.object({
 			.regex(/^0\d{2}-\d{3}-\d{4}$/, {
 				message: "รูปแบบเบอร์โทรต้องเป็น 0xx-xxx-xxxx",
 			})
-			.optional()
+			.optional(),
 	),
+	lat: z.preprocess(
+		emptyNumber,
+		z
+			.number({ message: "ละติจูดต้องเป็นตัวเลข" })
+			.min(-90, { message: "ละติจูดต้องไม่น้อยกว่า -90" })
+			.max(90, { message: "ละติจูดต้องไม่เกิน 90" }),
+	),
+	lng: z.preprocess(
+		emptyNumber,
+		z
+			.number({ message: "ลองจิจูดต้องเป็นตัวเลข" })
+			.min(-180, { message: "ลองจิจูดต้องไม่น้อยกว่า -180" })
+			.max(180, { message: "ลองจิจูดต้องไม่เกิน 180" }),
+	),
+	placeId: z.preprocess(emptyString, z.string().trim().optional()),
+	address: z.preprocess(emptyString, z.string().trim().optional()),
 });
 
 export type State = {
@@ -45,6 +61,8 @@ export type State = {
 		floor?: string[];
 		admin?: string[];
 		tel?: string[];
+		lat?: string[];
+		lng?: string[];
 	};
 	message?: string | null;
 	inputs?: { [key: string]: FormDataEntryValue };
@@ -54,7 +72,7 @@ export type State = {
 export async function editBuilding(
 	buildingId: string, // รับค่าจาก .bind()
 	prevState: State | null, // รับค่าจาก useActionState
-	formData: FormData // รับค่าจาก Form Submit
+	formData: FormData, // รับค่าจาก Form Submit
 ): Promise<State> {
 	// 1. Validate Form Data
 	const rawData = Object.fromEntries(formData);
@@ -81,7 +99,7 @@ export async function editBuilding(
 	try {
 		console.log(
 			`Updating building ${buildingId} with data:`,
-			validatedFields.data
+			validatedFields.data,
 		);
 		const res = await fetch(
 			`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}`,
@@ -92,7 +110,7 @@ export async function editBuilding(
 				},
 				credentials: "include",
 				body: JSON.stringify(validatedFields.data),
-			}
+			},
 		);
 		if (!res.ok) {
 			throw new Error(res.statusText);
