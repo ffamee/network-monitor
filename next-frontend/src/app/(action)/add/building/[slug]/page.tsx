@@ -2,7 +2,7 @@
 import { use, useRef, useState } from "react";
 import { BuildingAddForm } from "./add-building-form";
 import AddBuildingMap from "./add-building-map";
-import { MapHandler } from "./map-place";
+import { PlaceHandler } from "./map-place";
 
 export type LocationInfo = {
 	lat: number;
@@ -19,7 +19,7 @@ export default function AddBuildingPage({
 }) {
 	const { slug } = use(params);
 	const [location, setLocation] = useState<LocationInfo | null>(null);
-	const mapRef = useRef<MapHandler>(null);
+	const mapRef = useRef<PlaceHandler>(null);
 	// const zone = await fetch(
 	// 	`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/${slug}`,
 	// 	{

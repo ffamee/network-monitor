@@ -1,7 +1,7 @@
 "use client";
 
 import MapPlace, {
-	MapHandler,
+	PlaceHandler,
 } from "@/app/(action)/add/building/[slug]/map-place";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
 import GoogleMap from "@/components/gl-map/google-map";
@@ -11,7 +11,7 @@ interface EditBuildingMapProps {
 	onLocationSelect: (data: LocationInfo) => void;
 }
 
-const EditBuildingMap = forwardRef<MapHandler, EditBuildingMapProps>(
+const EditBuildingMap = forwardRef<PlaceHandler, EditBuildingMapProps>(
 	(props, ref) => {
 		return (
 			<div className="w-full h-full">

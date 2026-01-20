@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import EditBuildingMap from "./edit-building-map";
 import { BuildingEditForm } from "./edit-building-form";
-import { MapHandler } from "@/app/(action)/add/building/[slug]/map-place";
+import { PlaceHandler } from "@/app/(action)/add/building/[slug]/map-place";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
 
 interface EditBuildingPageProps {
@@ -31,7 +31,7 @@ export default function EditBuildingComponentPage({
 		...(building.placeId && { placeId: building.placeId }),
 		...(building.address && { address: building.address }),
 	});
-	const mapRef = useRef<MapHandler>(null);
+	const mapRef = useRef<PlaceHandler>(null);
 
 	const fetchPlace = async () => {
 		if (!mapRef.current) return;

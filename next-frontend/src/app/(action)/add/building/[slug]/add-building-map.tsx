@@ -1,5 +1,5 @@
 import GoogleMap from "@/components/gl-map/google-map";
-import MapPlace, { MapHandler } from "./map-place";
+import MapPlace, { PlaceHandler } from "./map-place";
 import { LocationInfo } from "./page";
 import { forwardRef } from "react";
 
@@ -7,7 +7,7 @@ interface AddBuildingMapProps {
 	onLocationSelect: (data: LocationInfo) => void;
 }
 
-const AddBuildingMap = forwardRef<MapHandler, AddBuildingMapProps>(
+const AddBuildingMap = forwardRef<PlaceHandler, AddBuildingMapProps>(
 	(props, ref) => {
 		return (
 			<div className="w-full h-full">

@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { LocationInfo } from "./page";
 
-export interface MapHandler {
+export interface PlaceHandler {
 	getPlaceDetails: (placeId: string) => Promise<{
 		lat: number;
 		lng: number;
@@ -19,7 +19,7 @@ interface AddBuildingMapProps {
 	onLocationSelect: (data: LocationInfo) => void;
 }
 
-const MapPlace = forwardRef<MapHandler, AddBuildingMapProps>(
+const MapPlace = forwardRef<PlaceHandler, AddBuildingMapProps>(
 	({ onLocationSelect }, ref) => {
 		const map = useMap();
 		const placesLib = useMapsLibrary("places"); // เรียกใช้ Library Places
