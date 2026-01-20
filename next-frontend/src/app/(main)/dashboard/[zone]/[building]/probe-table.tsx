@@ -19,6 +19,7 @@ import {
 import { CheckCircle2, LaptopMinimal, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import AddProbeButton from "./add-probe-button";
 
 interface Probe {
 	id: string;
@@ -192,7 +193,7 @@ export const ProbeTable = ({ building }: { building: string }) => {
 	const filteredProbes = initialProbes.filter(
 		(p) =>
 			p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			p.ip.includes(searchTerm)
+			p.ip.includes(searchTerm),
 	);
 
 	// useEffect(() => {
@@ -216,7 +217,8 @@ export const ProbeTable = ({ building }: { building: string }) => {
 					<CheckCircle2 />
 					สถานะอุปกรณ์ (Probes Status)
 				</CardTitle>
-				<CardAction>
+				<CardAction className="flex gap-4">
+					<AddProbeButton building={building} />
 					<div className="relative">
 						<Search
 							className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
