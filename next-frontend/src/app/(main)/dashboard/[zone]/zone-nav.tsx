@@ -28,7 +28,7 @@ export function ZoneNav({ zone }: { zone: string }) {
 					<Link href={`/map?zone=${zone}`}>Open Map</Link>
 				</DropdownMenuItem>
 				<DropdownMenuItem>
-					<a href={`/edit/zone/${zone}`}>Edit Zone in full Page</a>
+					<a href={`/edit/zone/${zone}`}>Edit Zone in Full Page</a>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

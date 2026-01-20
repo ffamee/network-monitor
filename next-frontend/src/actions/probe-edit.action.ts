@@ -8,7 +8,7 @@ const emptyString = (val: string) => (val === "" ? undefined : val);
 const emptyNumber = (val: string) =>
 	val.trim() === "" ? undefined : Number(val.trim());
 // Schema สำหรับ Validation
-const BuildingSchema = z.object({
+const ProbeSchema = z.object({
 	name: z.preprocess(
 		emptyString,
 		z.string().trim().min(1, { message: "ชื่อต้องไม่ว่างเปล่า" }),
@@ -20,23 +20,14 @@ const BuildingSchema = z.object({
 			.min(0, { message: "ชั้นต้องมากกว่าเท่ากับ 0" })
 			.optional(),
 	),
-	admin: z.preprocess(
+	serialNumber: z.preprocess(
 		emptyString,
-		z
-			.string()
-			.trim()
-			.min(1, { message: "ชื่อผู้ดูแลต้องไม่ว่างเปล่า" })
-			.optional(),
+		z.string().trim().min(1, { message: "หมายเลขเครื่องต้องไม่ว่างเปล่า" }),
 	),
-	tel: z.preprocess(
-		emptyString,
-		z
-			.string()
-			.regex(/^0\d{2}-\d{3}-\d{4}$/, {
-				message: "รูปแบบเบอร์โทรต้องเป็น 0xx-xxx-xxxx",
-			})
-			.optional(),
-	),
+	// buildingId: z.preprocess(
+	// 	emptyString,
+	// 	z.string().trim().min(1, { message: "Building ID ต้องไม่ว่างเปล่า" }),
+	// ),
 	lat: z.preprocess(
 		emptyNumber,
 		z
@@ -67,30 +58,37 @@ const BuildingSchema = z.object({
 			.min(1, { message: "Address ต้องไม่ว่างเปล่า" })
 			.optional(),
 	),
+	// ipv4 field use z.ipv4
+	ip: z.preprocess(
+		emptyString,
+		z.ipv4({ message: "IP Address ต้องเป็นรูปแบบ IPv4 ที่ถูกต้อง" }),
+	),
 });
 
 export type State = {
 	errors?: {
 		name?: string[];
 		floor?: string[];
-		admin?: string[];
-		tel?: string[];
+		serialNumber?: string[];
+		buildingId?: string[];
 		lat?: string[];
 		lng?: string[];
+		ip?: string[];
 	};
 	message?: string | null;
 	inputs?: { [key: string]: FormDataEntryValue };
 };
 
 // Function Signature: [Arguments from bind], [prevState], [formData]
-export async function editBuilding(
-	buildingId: string, // รับค่าจาก .bind()
+export async function editProbe(
+	probeId: string, // รับค่าจาก .bind()
 	prevState: State | null, // รับค่าจาก useActionState
 	formData: FormData, // รับค่าจาก Form Submit
 ): Promise<State> {
 	// 1. Validate Form Data
 	const rawData = Object.fromEntries(formData);
-	const validatedFields = BuildingSchema.safeParse(rawData);
+	console.log("rawData:", rawData);
+	const validatedFields = ProbeSchema.safeParse({ ...rawData, probeId });
 
 	// console.log("validatedFields:", validatedFields);
 
@@ -106,17 +104,15 @@ export async function editBuilding(
 	}
 
 	// 3. Update Database
-	let newSlug: { zone: string; building: string } = {
+	let newSlug: { zone: string; building: string; probe: string } = {
 		zone: "zone-a",
-		building: buildingId,
+		building: "building-1",
+		probe: probeId,
 	};
 	try {
-		console.log(
-			`Updating building ${buildingId} with data:`,
-			validatedFields.data,
-		);
+		console.log(`Update probe ${probeId} with data:`, validatedFields.data);
 		const res = await fetch(
-			`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}`,
+			`${process.env.NEXT_PUBLIC_BACKEND_URL}/probe/${probeId}`,
 			{
 				method: "PUT",
 				headers: {
@@ -132,19 +128,22 @@ export async function editBuilding(
 		const data = await res.json();
 		newSlug = {
 			zone: data.zoneId ?? "zone-a",
-			building: data.buildingId ?? buildingId,
+			building: data.building,
+			probe: data.probeId,
 		};
 		// await db.building.update({ where: { id: buildingId }, data: ... })
 	} catch (error) {
 		return {
 			message: `Update Error: ${
-				error instanceof Error ? error.message : "Failed to Update Building."
+				error instanceof Error ? error.message : "Failed to Update Probe."
 			}`,
 			inputs: rawData,
 		};
 	}
 
 	// 4. Revalidate & Redirect
-	revalidatePath(`/dashboard/${newSlug.zone}/${newSlug.building}`);
-	redirect(`/dashboard/${newSlug.zone}/${newSlug.building}`);
+	revalidatePath(
+		`/dashboard/${newSlug.zone}/${newSlug.building}/${newSlug.probe}`,
+	);
+	redirect(`/dashboard/${newSlug.zone}/${newSlug.building}/${newSlug.probe}`);
 }

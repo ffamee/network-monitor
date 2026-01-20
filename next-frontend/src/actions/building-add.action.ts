@@ -55,8 +55,22 @@ const BuildingSchema = z.object({
 			.min(-180, { message: "ลองจิจูดต้องไม่น้อยกว่า -180" })
 			.max(180, { message: "ลองจิจูดต้องไม่เกิน 180" }),
 	),
-	placeId: z.preprocess(emptyString, z.string().trim().optional()),
-	address: z.preprocess(emptyString, z.string().trim().optional()),
+	placeId: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "Place ID ต้องไม่ว่างเปล่า" })
+			.optional(),
+	),
+	address: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "Address ต้องไม่ว่างเปล่า" })
+			.optional(),
+	),
 });
 
 export type State = {

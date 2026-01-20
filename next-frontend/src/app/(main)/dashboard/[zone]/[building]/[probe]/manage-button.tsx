@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
-export function ManageButton() {
+export function ManageButton({ probe }: { probe: string }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -25,7 +25,7 @@ export function ManageButton() {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
 				<DropdownMenuItem>
-					<Link href="/edit">Edit Probe</Link>
+					<a href={`/edit/probe/${probe}`}>Edit Probe in Full Page</a>
 				</DropdownMenuItem>
 				<DropdownMenuItem>
 					<Link href="/grafana">Open in Grafana</Link>

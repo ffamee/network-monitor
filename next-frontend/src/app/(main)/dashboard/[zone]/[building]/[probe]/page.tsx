@@ -3,6 +3,7 @@ import {
 	Globe,
 	LaptopMinimal,
 	MapPin,
+	Pencil,
 	RefreshCw,
 	Terminal,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import LogCard from "./log-card";
 import { StatusBadge } from "@/components/badge/status-badge";
 import LogCalendar from "./log-calendar";
 import { Suspense } from "react";
+import Link from "next/link";
 
 type Params = Promise<{ probe: string }>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -42,7 +44,7 @@ async function getProbeData(probeId: string) {
 				"Content-Type": "application/json",
 			},
 			credentials: "include",
-		}
+		},
 	);
 	if (!res.ok) {
 		throw new Error("Failed to fetch probe data");
@@ -78,6 +80,16 @@ export default async function ProbePage({
 											{probeData.name}
 										</h2>
 										<StatusBadge status={probeData.status} />
+										<Link
+											href={`/edit/probe/${probe}`}
+											title="แก้ไขข้อมูลอุปกรณ์"
+											className="cursor-pointer text-white/50 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
+										>
+											<Pencil
+												data-testid="edit-zone-info-trigger"
+												className="w-[1em] h-[1em]"
+											/>
+										</Link>
 									</div>
 									<div className="flex flex-wrap items-center gap-2 text-sm text-secondary-foreground/70">
 										<span className="flex items-center gap-1.5">
@@ -99,7 +111,7 @@ export default async function ProbePage({
 								<button className="hidden lg:flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors shadow-lg shadow-blue-900/20">
 									<RefreshCw size={16} /> Refresh
 								</button>
-								<ManageButton />
+								<ManageButton probe={probe} />
 							</div>
 						</div>
 					</div>
