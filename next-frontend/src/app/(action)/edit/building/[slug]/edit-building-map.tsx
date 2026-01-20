@@ -1,8 +1,6 @@
 "use client";
 
-import MapPlace, {
-	PlaceHandler,
-} from "@/app/(action)/add/building/[slug]/map-place";
+import MapPlace, { PlaceHandler } from "@/components/gl-map/map-place";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
 import GoogleMap from "@/components/gl-map/google-map";
 import { forwardRef } from "react";

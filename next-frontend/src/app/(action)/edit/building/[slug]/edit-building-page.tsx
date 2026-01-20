@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import EditBuildingMap from "./edit-building-map";
 import { BuildingEditForm } from "./edit-building-form";
-import { PlaceHandler } from "@/app/(action)/add/building/[slug]/map-place";
+import { PlaceHandler } from "@/components/gl-map/map-place";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
 
 interface EditBuildingPageProps {

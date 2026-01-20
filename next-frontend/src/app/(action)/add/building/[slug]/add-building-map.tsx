@@ -1,5 +1,7 @@
 import GoogleMap from "@/components/gl-map/google-map";
-import MapPlace, { PlaceHandler } from "./map-place";
+import MapPlace, {
+	PlaceHandler,
+} from "../../../../../components/gl-map/map-place";
 import { LocationInfo } from "./page";
 import { forwardRef } from "react";
 

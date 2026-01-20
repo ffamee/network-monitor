@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { LocationInfo } from "./page";
+import { LocationInfo } from "../../app/(action)/add/building/[slug]/page";
 
 export interface PlaceHandler {
 	getPlaceDetails: (placeId: string) => Promise<{
