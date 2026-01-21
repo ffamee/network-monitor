@@ -1,8 +1,8 @@
 """init zone table
 
-Revision ID: 67921e21b033
+Revision ID: 8e3a05d19cdd
 Revises: 
-Create Date: 2026-01-21 11:31:30.884685
+Create Date: 2026-01-21 13:10:13.701153
 
 """
 from typing import Sequence, Union
@@ -14,7 +14,7 @@ import geoalchemy2
 
 
 # revision identifiers, used by Alembic.
-revision: str = '67921e21b033'
+revision: str = '8e3a05d19cdd'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

@@ -58,11 +58,12 @@ def include_object(object, name, type_, reflected, compare_to): # type: ignore[n
 
     return True
 
-def _include_name(name, type_, parent_names): # type: ignore[no-untyped-def]
+def include_name(name, type_, parent_names): # type: ignore[no-untyped-def]
     # Ignore all schemas except the public schema
     # This is because we don't want to create tables from geoalchemy2
     if type_ == "schema":
-        return False
+        # return False
+        return name == "public"
     else:
         return True
 
@@ -85,7 +86,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         include_object=include_object,
-        include_name=_include_name,
+        include_name=include_name,
+        include_schemas=True,
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -95,7 +97,7 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata,
-                    include_object=include_object, include_name=_include_name)
+                    include_object=include_object, include_name=include_name, include_schemas=True)
 
     with context.begin_transaction():
         context.run_migrations()
