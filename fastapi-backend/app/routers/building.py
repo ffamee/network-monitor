@@ -18,6 +18,8 @@ base_building = {
 		"https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2301&auto=format&fit=crop",
 		"https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop",
 	],
+	"lat": 13.850022570498957,
+	"lng": 100.57101354002953,
 }
 
 building_data = {"*": base_building}
@@ -64,3 +66,17 @@ async def update_building(
 				building_data[building][i] = None
 
 	return {"message": f"Building {building} updated successfully"}
+
+
+@router.patch("/mapping/{building}")
+async def update_building_mapping(
+	building: str, mapping_data: dict[str, object]
+) -> dict[str, str]:
+	print(f"Updating building mapping for: {building} with data: {mapping_data}")
+	# Here you would normally update the building mapping data in your database
+	if building not in building_data:
+		return {"message": f"Building {building} not found"}
+
+	building_data[building]["location"] = mapping_data
+
+	return {"message": f"Building {building} mapping updated successfully"}

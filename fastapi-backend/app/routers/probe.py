@@ -27,6 +27,8 @@ probe = {
 	"temperature": 42,
 	"cpuLoad": 28,
 	"memoryUsage": 45,
+	"lat": 13.850022570498957,
+	"lng": 100.57101354002953,
 }
 
 # add type for each event (info, warning, error)
@@ -369,7 +371,7 @@ async def get_probe(probe_slug: str) -> dict[str, object]:
 	print(f"Requested probe: {probe_slug}")
 	# set 0.5 second delay to simulate real api call
 	await asyncio.sleep(0.5)
-	return probe
+	return {**probe, "building": "building-1"}
 
 
 # get probe events query by date and pagination
@@ -435,3 +437,26 @@ async def get_probe_monthly_status(probe_slug: str) -> dict[str, object]:
 		else:
 			result["status"][date_str] = "info"
 	return result
+
+
+@router.post("")
+async def create_probe(new_probe: dict[str, object]) -> dict[str, str]:
+	print(f"Creating new probe with data: {new_probe} {new_probe.get('id')}")
+	# Here you would normally save the new probe data to your database
+	res = probe.copy()
+	res.update(new_probe)
+	return {"zoneId": "zone-a", "building": "building-1", "probeId": "probe-001"}
+
+
+@router.put("/{probe_slug}")
+async def update_probe(
+	probe_slug: str, updated_data: dict[str, object]
+) -> dict[str, str]:
+	print(f"Updating probe: {probe_slug} with data: {updated_data}")
+	# Here you would normally update the probe data in your database
+	return {
+		"message": f"Probe {probe_slug} updated successfully",
+		"zone": "zone-a",
+		"building": "building-1",
+		"probeId": probe_slug,
+	}

@@ -1,3 +1,4 @@
-from .buillding import Building
+from .building import Building
+from .zone import Zone
 
-__all__ = ["Building"]
+__all__ = ["Building", "Zone"]
