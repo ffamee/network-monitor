@@ -7,6 +7,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
+from geoalchemy2.admin.dialects.common import _check_spatial_type
+from geoalchemy2.types import Geometry, Geography, Raster
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -37,6 +40,32 @@ target_metadata = SQLModel.metadata
 def get_url() -> str:
     return str(settings.SQLALCHEMY_DATABASE_URI)
 
+def include_object(object, name, type_, reflected, compare_to): # type: ignore[no-untyped-def]
+    # Exclude 'spatial_ref_sys' from migrations
+    if type_ == "index":
+        if len(object.expressions) == 1:
+            try:
+                col = object.expressions[0]
+                if (
+                    _check_spatial_type(col.type, (Geometry, Geography, Raster)) # type: ignore[no-untyped-call]
+                    and col.type.spatial_index
+                ):
+                    return False
+            except AttributeError:
+                pass
+    if type_ == "table" and name == "spatial_ref_sys":
+        return False
+
+    return True
+
+def _include_name(name, type_, parent_names): # type: ignore[no-untyped-def]
+    # Ignore all schemas except the public schema
+    # This is because we don't want to create tables from geoalchemy2
+    if type_ == "schema":
+        return False
+    else:
+        return True
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -55,6 +84,8 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
+        include_object=include_object,
+        include_name=_include_name,
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -63,7 +94,8 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(connection=connection, target_metadata=target_metadata,
+                    include_object=include_object, include_name=_include_name)
 
     with context.begin_transaction():
         context.run_migrations()

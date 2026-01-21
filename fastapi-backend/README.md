@@ -18,3 +18,7 @@
   - using `ruff` for lint (check and format)
     - check: `uv run ruff check app`
     - format: `uv run ruff format app`
+
+# Alembic migration
+  - run versioning: `uv run alembic revision --autogenerate -m "message"`
+  - run migrate: `uv run alembic upgrade head`
