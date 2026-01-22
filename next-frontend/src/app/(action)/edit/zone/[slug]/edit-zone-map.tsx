@@ -3,7 +3,7 @@
 import { DrawingManager } from "@/components/gl-map/drawing/terra-draw-map";
 import GoogleMap from "@/components/gl-map/google-map";
 import React, { useEffect } from "react";
-import ColorPickerAdvanced from "./color-selector";
+import ColorPickerAdvanced from "@/components/gl-map/color-selector";
 import { RefreshCw } from "lucide-react";
 
 interface EditZoneMapProps {

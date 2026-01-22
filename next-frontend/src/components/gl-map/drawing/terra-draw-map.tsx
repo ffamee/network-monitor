@@ -34,15 +34,15 @@ function processSnapshotForUndo(snapshot: any[]): any[] {
 }
 
 interface PolygonEditorProps {
-	onPathChange: (paths: string | null) => void;
-	color?: string;
+	color: string;
 	initialPaths: string | null;
+	onPathChange: (paths: string | null) => void;
 }
 
 export const DrawingManager = ({
-	onPathChange,
 	color,
 	initialPaths,
+	onPathChange,
 }: PolygonEditorProps) => {
 	const map = useMap();
 	const drawRef = useRef<TerraDraw | null>(null);
@@ -62,12 +62,16 @@ export const DrawingManager = ({
 	// const onPathChangeRef = onPathChange);
 	const hasInitialPaths = useRef<boolean>(true);
 	const initialPathsRef = useRef<string | null>(initialPaths);
-	const colorRef = useRef<string | undefined>(color);
+	const colorRef = useRef<string>(color);
+
+	console.log("Current mode: ", currentMode);
 
 	useEffect(() => {
 		// 1. เช็คความพร้อมของ Map และ Div (แก้ Error addEventListener null)
 		// if (!map || !window.google || !map.getDiv()) return;
 		if (!map || !window.google) return;
+
+		console.log("Initializing Terra Draw...");
 
 		map.addListener("projection_changed", () => {
 			const adapter = new TerraDrawGoogleMapsAdapter({
@@ -106,9 +110,10 @@ export const DrawingManager = ({
 				],
 			});
 
+			console.log("Terra Draw Instance Created:", draw);
 			draw.start();
 			drawRef.current = draw;
-
+			console.log("Terra Draw Initialized in UseEffect:", drawRef.current);
 			// 2. รอให้ Ready ก่อนค่อยเริ่มทำงาน
 			draw.on("ready", () => {
 				console.log("Terra Draw Ready");
@@ -127,13 +132,14 @@ export const DrawingManager = ({
 							// history.current.push(draw.getSnapshot());
 						} else {
 							throw new Error(
-								"Invalid GeoJSON file: must be a FeatureCollection."
+								"Invalid GeoJSON file: must be a FeatureCollection.",
 							);
 						}
 					} catch (error) {
 						console.error("Error parsing GeoJSON file.", error);
 					}
 				} else {
+					hasInitialPaths.current = false;
 					console.log(hasInitialPaths.current, initialPathsRef.current);
 				}
 				// Init History
@@ -171,7 +177,7 @@ export const DrawingManager = ({
 
 					const isFinished = processedSnapshot.some(
 						(f) =>
-							f.properties.mode === "select" || f.properties.currentlyDrawing
+							f.properties.mode === "select" || f.properties.currentlyDrawing,
 					);
 
 					if (isFinished) return; // ยังวาดไม่เสร็จ ไม่ต้องอัพเดท
@@ -181,7 +187,7 @@ export const DrawingManager = ({
 						type: "FeatureCollection",
 						features: processedSnapshot,
 					};
-					const data = JSON.stringify(geojson, null, 4);
+					const data = JSON.stringify(geojson);
 					initialPathsRef.current = data;
 					onPathChange(data);
 				}, 300);
@@ -211,6 +217,8 @@ export const DrawingManager = ({
 			}
 		};
 	}, [map, onPathChange]);
+
+	console.log("Render drawing", drawRef.current);
 
 	useEffect(() => {
 		if (!drawRef.current) return;
@@ -243,6 +251,7 @@ export const DrawingManager = ({
 	// --- Actions ---
 
 	const setMode = (mode: "polygon" | "select") => {
+		console.log("Setting mode to:", mode, drawRef.current);
 		if (!drawRef.current) return;
 		if (mode === currentMode) {
 			drawRef.current.setMode("static");
@@ -299,8 +308,8 @@ export const DrawingManager = ({
 			isDelete
 				? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
 				: isActive
-				? "bg-primary border-primary text-primary-foreground"
-				: "bg-accent text-accent-foreground border-ring hover:bg-accent-foreground hover:text-accent"
+					? "bg-primary border-primary text-primary-foreground"
+					: "bg-accent text-accent-foreground border-ring hover:bg-accent-foreground hover:text-accent"
 		}
     ${!isActive && !isDelete ? "hover:bg-gray-50" : ""}
   `;
