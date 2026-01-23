@@ -10,7 +10,7 @@ services:
       start_period: 30s
       timeout: 10s
     volumes:
-      - app-db-data:/var/lib/postgresql
+      - db-data:/var/lib/postgresql
     env_file:
       - .env
     environment:
@@ -26,6 +26,43 @@ services:
       - db
     environment:
       - ADMINER_DESIGN=pepa-linha-dark
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER?Variable not set}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD?Variable not set}
+    volumes:
+      - minio-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER?Variable not set}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD?Variable not set}
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio \"$${MINIO_ENDPOINT}\" \"$${MINIO_ROOT_USER}\" \"$${MINIO_ROOT_PASSWORD}\";
+      /usr/bin/mc mb -p myminio/app-temp;
+      /usr/bin/mc mb -p myminio/app-storage;
+      /usr/bin/mc anonymous set public myminio/app-temp;
+      /usr/bin/mc anonymous set download myminio/app-storage;
+      /usr/bin/mc ilm rule add --expire-days 1 myminio/app-temp;
+      /usr/bin/mc version enable myminio/app-storage;
+      /usr/bin/mc ilm rule add --noncurrent-expire-days 30 --expire-delete-marker myminio/app-storage;
+      exit 0;
+      "
 
   backend:
     build:
@@ -59,5 +96,7 @@ services:
     #   sh -c "pnpm run start"
 
 volumes:
-  app-db-data:
+  db-data:
     name: senior-postgis-db
+  minio-data:
+    name: senior-minio-data
