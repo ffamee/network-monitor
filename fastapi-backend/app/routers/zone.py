@@ -1,6 +1,11 @@
 import asyncio
+from collections.abc import Sequence
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+
+from app.crud import zone as crud_zone
+from app.dependencies import SessionDep
+from app.models.zone import Zone, ZoneCreate, ZoneRead, ZoneUpdate
 
 router = APIRouter(
 	prefix="/zone",
@@ -369,54 +374,49 @@ images = [
 ]
 
 
-@router.get("")
-async def get_all_zone() -> list[dict[str, object]]:
-	print("Requested zone")
-	return zones
+@router.get("", response_model=list[ZoneRead])
+async def get_all_zone(session: SessionDep) -> Sequence[Zone]:
+	# return all zones from database
+	return await crud_zone.get_all_zone(session=session)
 
 
-@router.get("/{zone_slug}")
-async def get_zone(zone_slug: str) -> dict[str, object]:
-	print(f"Requested zone: {zone_slug}")
-	# set 0.5 second delay to simulate real api call
-	await asyncio.sleep(0.5)
-	all_zones = await get_all_zone()
-	res = filter(
-		lambda z: z["slug"] == zone_slug,
-		all_zones,
-	)
-	result = list(res)[0] if res else None
-	if result and res:
-		return {
-			**result,
-			"images": images,
-			"totalBuildings": 8,
-			"totalProbes": len(result["locations"]),
-		}
-	return {"error": "Zone not found"}
+@router.get("/{zone_id}", response_model=ZoneRead)
+async def get_zone(session: SessionDep, zone_id: int) -> Zone:
+	# return zone from zone_id
+	zone = await crud_zone.get_zone(session=session, zone_id=zone_id)
+
+	if not zone:
+		raise HTTPException(status_code=404, detail="Zone not found")
+	return zone
 
 
-# edit zone put api
-@router.put("/{zone_slug}")
+# 	return {
+# 		**result,
+# 		"images": images,
+# 		"totalBuildings": 8,
+# 		"totalProbes": len(result["locations"]),
+# 	}
+# return {"error": "Zone not found"}
+
+
+@router.post("", response_model=ZoneRead)
+async def create_zone(session: SessionDep, zone_in: ZoneCreate) -> Zone:
+	# create new zone in database
+	print(f"Creating zone: {zone_in}")
+	zone = await crud_zone.create_zone(session=session, zone_in=zone_in)
+	return zone
+
+
+@router.put("/{zone_id}", response_model=ZoneRead)
 async def update_zone(
-	zone_slug: str, updated_data: dict[str, object]
-) -> dict[str, str]:
-	print(f"Updating zone: {zone_slug} with data: {updated_data}")
-	# Here you would normally update the zone data in your database
-	for zone in zones:
-		if zone["slug"] == zone_slug:
-			zone.update(updated_data)
-			# update floor even if it not in updated_data
-			for i in ["description"]:
-				if i not in updated_data:
-					zone[i] = None
-			# update slug to match zone name ** need slugify function here **
-			zone["slug"] = str(zone["name"]).lower().replace(" ", "-")
-			return {
-				"message": f"Zone {zone_slug} updated successfully",
-				"zoneId": str(zone["slug"]),
-			}
-	return {"message": f"Zone {zone_slug} not found"}
+	session: SessionDep, zone_id: int, updated_data: ZoneUpdate
+) -> Zone:
+	# update zone data in database
+	print(f"Updating zone: {zone_id} with data: {updated_data}")
+	zone = await crud_zone.update_zone(
+		session=session, zone_id=zone_id, zone_update=updated_data
+	)
+	return zone
 
 
 @router.patch("/mapping/{zone_slug}")

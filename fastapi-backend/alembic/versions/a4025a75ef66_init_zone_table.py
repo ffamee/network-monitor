@@ -1,8 +1,8 @@
 """init zone table
 
-Revision ID: 8e3a05d19cdd
+Revision ID: a4025a75ef66
 Revises: 
-Create Date: 2026-01-21 13:10:13.701153
+Create Date: 2026-01-23 00:56:59.438770
 
 """
 from typing import Sequence, Union
@@ -14,7 +14,7 @@ import geoalchemy2
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8e3a05d19cdd'
+revision: str = 'a4025a75ef66'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,8 +26,9 @@ def upgrade() -> None:
     op.create_table('zone',
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('color', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('paths', geoalchemy2.types.Geometry(geometry_type='POLYGON', srid=4326, dimension=2, from_text='ST_GeomFromEWKT', name='geometry'), nullable=True),
+    sa.Column('paths', geoalchemy2.types.Geometry(geometry_type='MULTIPOLYGON', srid=4326, dimension=2, from_text='ST_GeomFromEWKT', name='geometry'), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_zone_name'), 'zone', ['name'], unique=True)
