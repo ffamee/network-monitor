@@ -67,7 +67,7 @@ export default function AddZoneMap({
 				<DrawingManager
 					color={color}
 					initialPaths={geojson}
-					onPathChange={setGeojson}
+					onPathsChange={setGeojson}
 				/>
 			</GoogleMap>
 			<div className="absolute bottom-4 right-4 z-10">

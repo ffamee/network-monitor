@@ -11,11 +11,42 @@ const emptyString = (val: string) => (val === "" ? undefined : val);
 const ZoneSchema = z.object({
 	name: z.preprocess(
 		emptyString,
-		z.string().trim().min(1, { message: "ชื่อต้องไม่ว่างเปล่า" })
+		z.string().trim().min(1, { message: "ชื่อต้องไม่ว่างเปล่า" }),
 	),
 	description: z.preprocess(
 		emptyString,
-		z.string().trim().min(1, { message: "คำอธิบายต้องไม่ว่างเปล่า" }).optional()
+		z
+			.string()
+			.trim()
+			.min(1, { message: "คำอธิบายต้องไม่ว่างเปล่า" })
+			.optional(),
+	),
+	color: z.preprocess(
+		emptyString,
+		z.string().trim().min(1, { message: "สีต้องไม่ว่างเปล่า" }),
+	),
+	geojson: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "GeoJSON ต้องไม่ว่างเปล่า" })
+			.transform((str, ctx) => {
+				// 3. หัวใจสำคัญ: แปลง String -> JSON Object
+				try {
+					return JSON.parse(str);
+				} catch (_e) {
+					// ถ้า Parse ไม่ผ่าน (เช่น string มั่วๆ) ให้แจ้ง error กลับไป
+					ctx.addIssue({
+						code: "custom",
+						message: "รูปแบบ JSON ไม่ถูกต้อง (Invalid JSON string)",
+					});
+					return z.NEVER;
+				}
+			})
+			// 4. (Optional) ตรวจซ้ำอีกทีว่าผลลัพธ์ที่ได้เป็น Object จริงไหม
+			.pipe(z.record(z.string(), z.any()))
+			.optional(),
 	),
 });
 
@@ -23,6 +54,7 @@ export type State = {
 	errors?: {
 		name?: string[];
 		description?: string[];
+		geojson?: string[];
 	};
 	message?: string | null;
 	inputs?: { [key: string]: FormDataEntryValue };
@@ -32,7 +64,7 @@ export type State = {
 export async function editZone(
 	zoneId: string, // รับค่าจาก .bind()
 	prevState: State | null, // รับค่าจาก useActionState
-	formData: FormData // รับค่าจาก Form Submit
+	formData: FormData, // รับค่าจาก Form Submit
 ): Promise<State> {
 	// 1. Validate Form Data
 	const rawData = Object.fromEntries(formData);
@@ -66,14 +98,14 @@ export async function editZone(
 				},
 				credentials: "include",
 				body: JSON.stringify(validatedFields.data),
-			}
+			},
 		);
 		if (!res.ok) {
 			throw new Error(res.statusText);
 		}
 		const data = await res.json();
 		newSlug = {
-			zone: data.zoneId ?? zoneId,
+			zone: data.slug ?? zoneId,
 		};
 		// await db.building.update({ where: { id: buildingId }, data: ... })
 	} catch (error) {

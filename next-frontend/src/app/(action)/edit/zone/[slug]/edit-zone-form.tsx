@@ -2,17 +2,18 @@
 
 import { useActionState } from "react";
 import { editZone } from "@/actions/zone-edit.action";
+import { Zone } from "@/models/zone";
 
-export function ZoneEditForm({
-	slug,
-	zone,
-}: {
-	slug: string;
-	zone: { name?: string; description?: string };
-}) {
+interface EditZoneFormProps {
+	zone: Zone;
+	paths: string | null;
+	color: string;
+}
+
+export function ZoneEditForm({ zone, paths, color }: EditZoneFormProps) {
 	// ⭐️ KEY POINT: สร้าง version ของ action ที่มี id ฝังอยู่แล้ว
 	// null ตัวแรกคือ context (this) ซึ่งใน server action เราไม่ใช้
-	const editZoneWithId = editZone.bind(null, slug);
+	const editZoneWithId = editZone.bind(null, zone.id.toString());
 
 	// ส่ง bound action เข้าไปใน hook
 	const [state, formAction, isPending] = useActionState(editZoneWithId, null);
@@ -32,6 +33,10 @@ export function ZoneEditForm({
 										disabled:[&_button]:cursor-progress disabled:[&_button]:opacity-50"
 					disabled={isPending}
 				>
+					{/* Hidden Input */}
+					<input type="hidden" name="color" value={color} />
+					<input type="hidden" name="geojson" value={paths || ""} />
+
 					{/* Name Input */}
 					<div>
 						<label
@@ -71,7 +76,7 @@ export function ZoneEditForm({
 							Description
 						</label>
 						<input
-							id="floor"
+							id="description"
 							name="description"
 							placeholder="enter description"
 							data-error={state?.errors?.description ? "true" : undefined}
@@ -87,6 +92,13 @@ export function ZoneEditForm({
 							</p>
 						)}
 					</div>
+
+					{/* Hidden Error Message */}
+					{/* {state?.errors?.geojson && (
+						<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
+							{state.errors.geojson.join(", ")}
+						</p>
+					)} */}
 
 					{/* Global Error Message */}
 					{state?.message && (

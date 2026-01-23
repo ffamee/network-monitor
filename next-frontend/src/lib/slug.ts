@@ -1,4 +1,4 @@
-export function getIdFromSlug(slug: string): string {
+export function getIdFromSlug(slug: string): string | null {
 	const parts = slug.split("-");
-	return parts[parts.length - 1];
+	return parts[0] || null;
 }

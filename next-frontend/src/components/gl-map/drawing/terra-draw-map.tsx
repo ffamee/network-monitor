@@ -36,13 +36,13 @@ function processSnapshotForUndo(snapshot: any[]): any[] {
 interface PolygonEditorProps {
 	color: string;
 	initialPaths: string | null;
-	onPathChange: (paths: string | null) => void;
+	onPathsChange: (paths: string | null) => void;
 }
 
 export const DrawingManager = ({
 	color,
 	initialPaths,
-	onPathChange,
+	onPathsChange,
 }: PolygonEditorProps) => {
 	const map = useMap();
 	const drawRef = useRef<TerraDraw | null>(null);
@@ -64,8 +64,6 @@ export const DrawingManager = ({
 	const initialPathsRef = useRef<string | null>(initialPaths);
 	const colorRef = useRef<string>(color);
 
-	console.log("Current mode: ", currentMode);
-
 	useEffect(() => {
 		// 1. เช็คความพร้อมของ Map และ Div (แก้ Error addEventListener null)
 		// if (!map || !window.google || !map.getDiv()) return;
@@ -73,7 +71,7 @@ export const DrawingManager = ({
 
 		console.log("Initializing Terra Draw...");
 
-		map.addListener("projection_changed", () => {
+		const listener = map.addListener("projection_changed", () => {
 			const adapter = new TerraDrawGoogleMapsAdapter({
 				map,
 				lib: window.google.maps,
@@ -110,10 +108,9 @@ export const DrawingManager = ({
 				],
 			});
 
-			console.log("Terra Draw Instance Created:", draw);
 			draw.start();
 			drawRef.current = draw;
-			console.log("Terra Draw Initialized in UseEffect:", drawRef.current);
+
 			// 2. รอให้ Ready ก่อนค่อยเริ่มทำงาน
 			draw.on("ready", () => {
 				console.log("Terra Draw Ready");
@@ -123,13 +120,41 @@ export const DrawingManager = ({
 					initialPathsRef.current &&
 					initialPathsRef.current.length > 0
 				) {
-					hasInitialPaths.current = false;
+					// hasInitialPaths.current = false;
+					// remove previous features
+					console.log("trying to load initial paths...");
 					try {
+						draw.clear();
 						const geojson = JSON.parse(initialPathsRef.current);
 						if (geojson.type === "FeatureCollection") {
+							console.log(
+								"Adding FeatureCollection features:",
+								geojson.features,
+							);
 							draw.addFeatures(geojson.features);
 							// Init History
 							// history.current.push(draw.getSnapshot());
+						} else if (geojson.type === "MultiPolygon") {
+							// แปลง MultiPolygon เป็น FeatureCollection
+							const features = geojson.coordinates.map(
+								(coordinates: unknown) => ({
+									id: self.crypto.randomUUID(),
+									type: "Feature",
+									properties: { mode: "polygon", selected: false },
+									geometry: {
+										type: "Polygon",
+										coordinates,
+									},
+								}),
+							);
+							console.log(
+								"Adding MultiPolygon features:",
+								features,
+								JSON.stringify(features),
+							);
+							draw.addFeatures(features);
+							const check = draw.getSnapshot();
+							console.log("Check added features:", check);
 						} else {
 							throw new Error(
 								"Invalid GeoJSON file: must be a FeatureCollection.",
@@ -138,10 +163,13 @@ export const DrawingManager = ({
 					} catch (error) {
 						console.error("Error parsing GeoJSON file.", error);
 					}
-				} else {
-					hasInitialPaths.current = false;
-					console.log(hasInitialPaths.current, initialPathsRef.current);
 				}
+				console.log(
+					"Initial Paths loaded.",
+					initialPathsRef.current,
+					hasInitialPaths.current,
+				);
+				hasInitialPaths.current = false;
 				// Init History
 				// history.current.push(draw.getSnapshot());
 			});
@@ -189,7 +217,7 @@ export const DrawingManager = ({
 					};
 					const data = JSON.stringify(geojson);
 					initialPathsRef.current = data;
-					onPathChange(data);
+					onPathsChange(data);
 				}, 300);
 				// Extract Path Logic
 				// const polygonFeature = snapshot.find(
@@ -210,15 +238,16 @@ export const DrawingManager = ({
 		});
 		return () => {
 			// Cleanup เช็คก่อน stop
+			console.log("Cleaning up Terra Draw...");
+			hasInitialPaths.current = true;
 			if (drawRef.current) {
+				console.log("Stopping Terra Draw...");
 				drawRef.current.stop();
 				drawRef.current = null;
-				hasInitialPaths.current = true;
 			}
+			google.maps.event.removeListener(listener);
 		};
-	}, [map, onPathChange]);
-
-	console.log("Render drawing", drawRef.current);
+	}, [map, onPathsChange]);
 
 	useEffect(() => {
 		if (!drawRef.current) return;
@@ -281,7 +310,7 @@ export const DrawingManager = ({
 	const handleClear = () => {
 		if (!drawRef.current) return;
 		drawRef.current.clear();
-		onPathChange(null); // เคลียร์ค่าออก
+		onPathsChange(null); // เคลียร์ค่าออก
 	};
 
 	// ฟังก์ชันลบสิ่งทีเลือกอยู่ (Delete Whole Feature)
