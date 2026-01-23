@@ -8,14 +8,17 @@ paths: (polygon geojson)
 building_id: int[] (foreign key to building) # not yet implemented
 """
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from geoalchemy2 import Geometry, WKBElement, WKTElement
 from geoalchemy2.shape import to_shape
 from pydantic import ConfigDict, ValidationInfo, computed_field, field_validator
 from shapely.geometry import mapping
 from slugify import slugify
-from sqlmodel import Column, Field, SQLModel
+from sqlmodel import Column, Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+	from .image import ZoneImage
 
 
 # Shared properties
@@ -45,6 +48,7 @@ class Zone(ZoneBase, table=True):
 		default=None,
 		sa_column=Column(Geometry("MULTIPOLYGON", srid=4326)),
 	)
+	images: list["ZoneImage"] = Relationship(back_populates="zone", cascade_delete=True)
 	# building_id: list[int] | None = Field(default=None, foreign_key="building.id")
 
 

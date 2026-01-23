@@ -61,9 +61,11 @@ def include_object(object, name, type_, reflected, compare_to): # type: ignore[n
 def include_name(name, type_, parent_names): # type: ignore[no-untyped-def]
     # Ignore all schemas except the public schema
     # This is because we don't want to create tables from geoalchemy2
-    if type_ == "schema":
-        # return False
-        return name == "public"
+    # if type_ == "schema":
+    #     # return False
+    #     return name == "public"
+    if type_ == "table":
+        return name in target_metadata.tables
     else:
         return True
 
