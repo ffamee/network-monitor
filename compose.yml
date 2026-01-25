@@ -2,6 +2,7 @@ services:
   db:
     # image: postgres:18-bookworm
     image: postgis/postgis:18-3.6
+    container_name: senior-postgis-db
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -21,6 +22,7 @@ services:
 
   adminer:
     image: adminer
+    container_name: senior-adminer
     restart: always
     depends_on:
       - db
@@ -29,6 +31,7 @@ services:
 
   minio:
     image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: senior-minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER?Variable not set}
@@ -42,27 +45,97 @@ services:
       timeout: 5s
       retries: 5
 
-  createbuckets:
+  # createbuckets:
+  #   image: minio/mc
+  #   container_name: senior-minio-mc
+  #   depends_on:
+  #     minio:
+  #       condition: service_healthy
+  #   environment:
+  #     MINIO_ENDPOINT: http://minio:9000
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER?Variable not set}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD?Variable not set}
+  #   entrypoint: >
+  #     /bin/sh -c "
+  #     /usr/bin/mc alias set myminio \"$${MINIO_ENDPOINT}\" \"$${MINIO_ROOT_USER}\" \"$${MINIO_ROOT_PASSWORD}\";
+  #     /usr/bin/mc mb -p myminio/app-temp;
+  #     /usr/bin/mc mb -p myminio/app-storage;
+  #     /usr/bin/mc anonymous set public myminio/app-temp;
+  #     /usr/bin/mc anonymous set download myminio/app-storage;
+  #     /usr/bin/mc ilm rule add --expire-days 1 myminio/app-temp;
+  #     /usr/bin/mc version enable myminio/app-storage;
+  #     /usr/bin/mc ilm rule add --noncurrent-expire-days 30 --expire-delete-marker myminio/app-storage;
+  #     exit 0;
+  #     "
+
+  minio-mc:
     image: minio/mc
+    container_name: senior-minio-mc
     depends_on:
       minio:
         condition: service_healthy
+    volumes:
+      - ./minio-mc/bucket-entrypoint.sh:/bucket-entrypoint.sh:ro
+    secrets:
+      - minio-root-user
+      - minio-root-password
     environment:
       MINIO_ENDPOINT: http://minio:9000
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER?Variable not set}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD?Variable not set}
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set myminio \"$${MINIO_ENDPOINT}\" \"$${MINIO_ROOT_USER}\" \"$${MINIO_ROOT_PASSWORD}\";
-      /usr/bin/mc mb -p myminio/app-temp;
-      /usr/bin/mc mb -p myminio/app-storage;
-      /usr/bin/mc anonymous set public myminio/app-temp;
-      /usr/bin/mc anonymous set download myminio/app-storage;
-      /usr/bin/mc ilm rule add --expire-days 1 myminio/app-temp;
-      /usr/bin/mc version enable myminio/app-storage;
-      /usr/bin/mc ilm rule add --noncurrent-expire-days 30 --expire-delete-marker myminio/app-storage;
-      exit 0;
-      "
+      MINIO_ROOT_USER: /run/secrets/minio-root-user
+      MINIO_ROOT_PASSWORD: /run/secrets/minio-root-password
+    entrypoint: ["/bin/sh", "-c", "/bucket-entrypoint.sh"]
+
+  influxdb2:
+    image: influxdb:2.7
+    container_name: senior-influxdb2
+    restart: always
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME_FILE: /run/secrets/influxdb2-username
+      DOCKER_INFLUXDB_INIT_PASSWORD_FILE: /run/secrets/influxdb2-password
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE: /run/secrets/influxdb2-admin-token
+      DOCKER_INFLUXDB_INIT_ORG: docs
+      DOCKER_INFLUXDB_INIT_BUCKET: home
+    secrets:
+      - influxdb2-username
+      - influxdb2-password
+      - influxdb2-admin-token
+    volumes:
+      - influxdb2-data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  grafana:
+    image: grafana/grafana
+    container_name: senior-grafana
+    restart: unless-stopped
+    depends_on:
+      influxdb2:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/custom-entrypoint.sh:/custom-entrypoint.sh:ro
+    secrets:
+      - grafana-admin-user
+      - grafana-admin-password
+      - influxdb2-username
+      - influxdb2-password
+      - influxdb2-admin-token
+      - postgres-user
+      - postgres-password
+      - postgres-db
+    environment:
+      - GF_SECURITY_ADMIN_USER__FILE=/run/secrets/grafana-admin-user
+      - GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana-admin-password
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    entrypoint: ["/bin/bash", "/custom-entrypoint.sh"]
 
   backend:
     build:
@@ -71,6 +144,8 @@ services:
     restart: always
     depends_on:
       db:
+        condition: service_healthy
+      influxdb2:
         condition: service_healthy
     env_file:
       - .env
@@ -100,3 +175,29 @@ volumes:
     name: senior-postgis-db
   minio-data:
     name: senior-minio-data
+  influxdb2-data:
+    name: senior-influxdb2-data
+  grafana-data:
+    name: senior-grafana-data
+
+secrets:
+  postgres-password:
+    environment: POSTGRES_PASSWORD
+  postgres-user:
+    environment: POSTGRES_USER
+  postgres-db:
+    environment: POSTGRES_DB
+  influxdb2-username:
+    environment: INFLUXDB2_USERNAME
+  influxdb2-password:
+    environment: INFLUXDB2_PASSWORD
+  influxdb2-admin-token:
+    environment: INFLUXDB2_ADMIN_TOKEN
+  minio-root-user:
+    environment: MINIO_ROOT_USER
+  minio-root-password:
+    environment: MINIO_ROOT_PASSWORD
+  grafana-admin-user:
+    environment: GRAFANA_ADMIN_USER
+  grafana-admin-password:
+    environment: GRAFANA_ADMIN_PASSWORD
