@@ -1,0 +1,34 @@
+apiVersion: 1
+
+datasources:
+  # -------------------------
+  # 1. InfluxDB (v2 using Flux)
+  # -------------------------
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb2:8086 # Service name in Docker Compose
+    isDefault: true
+    jsonData:
+      version: Flux
+      organization: docs
+      defaultBucket: $INFLUX_BUCKET
+      tlsSkipVerify: true
+    secureJsonData:
+      token: $INFLUX_TOKEN
+
+  # -------------------------
+  # 2. PostGIS (PostgreSQL)
+  # -------------------------
+  - name: PostGIS
+    type: postgres
+    access: proxy
+    url: db:5432              # Service name in Docker Compose
+    user: $POSTGRES_USER
+    database: $POSTGRES_DB
+    jsonData:
+      sslmode: "disable"      # No SSL in Docker Network
+      postgresVersion: 1803   # Specify approximate postgres version
+      timescaledb: false
+    secureJsonData:
+      password: $POSTGRES_PASSWORD

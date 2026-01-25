@@ -1,0 +1,137 @@
+/**
+ * ---------------------------------------------------------
+ * ส่วนที่ 1: ตามล่าหาตัวแปร echarts (Library)
+ * ---------------------------------------------------------
+ */
+let myEcharts = context.echarts;
+
+// // ทางที่ 1: หาใน Global Window (มาตรฐาน)
+// if (window.echarts) {
+//   console.log('✅ Found echarts in window');
+//   myEcharts = window.echarts;
+// }
+// // ทางที่ 2: หาใน Context (Plugin บางเวอร์ชันใส่ไว้ที่นี่)
+// else if (context.echarts) {
+//   console.log('✅ Found echarts in context');
+//   myEcharts = context.echarts;
+// }
+// // ทางที่ 3: (ท่าไม้ตาย) งัดแงะจาก Instance ของกราฟ
+// else if (context.panel && context.panel.chart) {
+//   console.log('⚠️ Attempting to extract echarts from instance constructor');
+//   // ดึง Class constructor ออกมาจากตัว instance ที่รันอยู่
+//   myEcharts = Object.getPrototypeOf(context.panel.chart).constructor;
+// }
+
+// // ถ้าหาไม่เจอจริงๆ ให้ยอมแพ้และแจ้ง Error
+// if (!myEcharts) {
+//   console.error('❌ FATAL: ECharts Library not found in any scope!');
+//   return {
+//     title: {
+//       text: 'CRITICAL ERROR: echarts library not found.\nPlease check console (F12).',
+//       left: 'center', top: 'center',
+//       textStyle: { color: 'red', fontSize: 20 }
+//     }
+//   };
+// }
+
+/**
+ * ---------------------------------------------------------
+ * ส่วนที่ 2: เตรียมข้อมูล (Logic เดิม)
+ * ---------------------------------------------------------
+ */
+const dataFrame = context.panel.data.series[0];
+
+if (!dataFrame || !dataFrame.fields) {
+  return { title: { text: 'No Data' } };
+}
+
+// Map ชื่อ field (แก้ให้ตรงกับ SQL ของคุณ: name, color, geojson)
+const nameField = dataFrame.fields.find((f) => f.name === 'name');
+const colorField = dataFrame.fields.find((f) => f.name === 'color');
+const geoField = dataFrame.fields.find((f) => f.name === 'geojson');
+
+if (!geoField) {
+  return {
+    title: {
+      text: 'Error: No "geojson" column found.',
+      left: 'center', top: 'center', textStyle: { color: 'red' }
+    }
+  };
+}
+
+const features = [];
+const mapData = [];
+const length = dataFrame.length;
+
+for (let i = 0; i < length; i++) {
+  const geoString = geoField.values.get(i);
+  const name = nameField ? nameField.values.get(i) : `ID-${i}`;
+  const color = colorField ? colorField.values.get(i) : '#ccc';
+
+  if (geoString) {
+    try {
+      const geometry = JSON.parse(geoString);
+      features.push({
+        type: "Feature",
+        geometry: geometry,
+        properties: { name: name }
+      });
+      mapData.push({
+        name: name,
+        value: 1,
+        itemStyle: {
+          areaColor: color,
+          borderColor: '#fff',
+          borderWidth: 1,
+          opacity: 0.8
+        },
+        emphasis: {
+          itemStyle: {
+            areaColor: color,
+            shadowBlur: 10,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      });
+    } catch (e) {
+      console.error("Error parsing GeoJSON row", i, e);
+    }
+  }
+}
+
+/**
+ * ---------------------------------------------------------
+ * ส่วนที่ 3: Register Map และ Return Config
+ * ---------------------------------------------------------
+ */
+const mapName = 'custom_polygon_map';
+const myGeoJSON = {
+  type: "FeatureCollection",
+  features: features
+};
+
+// *** ใช้ตัวแปร myEcharts ที่เราหามาได้ ***
+try {
+  myEcharts.registerMap(mapName, myGeoJSON);
+  console.log('✅ Map registered successfully');
+} catch (e) {
+  console.error('❌ Register Map Failed:', e);
+}
+
+return {
+  backgroundColor: 'transparent',
+  tooltip: {
+    trigger: 'item',
+    formatter: '{b}'
+  },
+  series: [
+    {
+      type: 'map',
+      map: mapName,
+      roam: true,
+      zoom: 1.2,
+      label: { show: false },
+      data: mapData
+    }
+  ]
+};
