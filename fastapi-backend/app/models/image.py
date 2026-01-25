@@ -9,6 +9,11 @@ if TYPE_CHECKING:
 	from .zone import Zone
 
 
+# Presigned URL Model
+class ImageRequest(SQLModel):
+	filename: str
+
+
 # Shared properties
 class ImageBase(SQLModel):
 	"""Base model for all image types (Zone images, Building images, etc.)"""

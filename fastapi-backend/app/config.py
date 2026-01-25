@@ -1,6 +1,7 @@
 import secrets
 import warnings
 from typing import Annotated, Any, Literal, Self
+from urllib.parse import quote_plus
 
 from pydantic import (
 	AnyUrl,
@@ -58,7 +59,7 @@ class Settings(BaseSettings):
 		return PostgresDsn.build(
 			scheme="postgresql+asyncpg",
 			username=self.POSTGRES_USER,
-			password=self.POSTGRES_PASSWORD,
+			password=quote_plus(self.POSTGRES_PASSWORD),
 			host=self.POSTGRES_HOST,
 			port=self.POSTGRES_PORT,
 			path=self.POSTGRES_DB,
@@ -70,7 +71,7 @@ class Settings(BaseSettings):
 		return PostgresDsn.build(
 			scheme="postgresql",
 			username=self.POSTGRES_USER,
-			password=self.POSTGRES_PASSWORD,
+			password=quote_plus(self.POSTGRES_PASSWORD),
 			host=self.POSTGRES_HOST,
 			port=self.POSTGRES_PORT,
 			path=self.POSTGRES_DB,
@@ -93,6 +94,13 @@ class Settings(BaseSettings):
 		self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
 
 		return self
+
+	MINIO_ENDPOINT: str = "localhost:9000"  # ถ้า run docker ให้ใช้ "minio:9000" หรือ "localhost:9000" แล้วแต่ว่ารันจากไหน
+	MINIO_ACCESS_KEY: str
+	MINIO_SECRET_KEY: str
+	MINIO_SECURE: bool = False  # False = HTTP (localhost), True = HTTPS (Production)
+	MINIO_BUCKET_TEMP: str = "app-temp"
+	MINIO_BUCKET_MAIN: str = "app-storage"
 
 
 settings = Settings()  # type: ignore

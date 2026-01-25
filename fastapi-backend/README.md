@@ -22,6 +22,12 @@
 # Alembic migration
   - run versioning: `uv run alembic revision --autogenerate -m "message"`
   - run migrate: `uv run alembic upgrade head`
+  - run downgrade: `uv run alembic downgrade <target>`
+	- `alembic downgrade -1` - Downgrade one revision
+	- `alembic downgrade base` - Downgrade to initial state (remove all Alembic-created tables)
+	- `alembic downgrade <revision_id>` - Downgrade to a specific revision
+	- `alembic downgrade -<n>` - Downgrade n steps
+
 
 
 # FastAPI Tips

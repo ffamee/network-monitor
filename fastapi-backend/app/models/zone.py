@@ -17,6 +17,8 @@ from shapely.geometry import mapping
 from slugify import slugify
 from sqlmodel import Column, Field, Relationship, SQLModel
 
+from app.models.image import ImageRequest
+
 if TYPE_CHECKING:
 	from .image import ZoneImage
 
@@ -34,6 +36,7 @@ class ZoneBase(SQLModel):
 # Properties to receive via API on creation
 class ZoneCreate(ZoneBase):
 	geojson: dict[str, Any] | None = Field(default=None)
+	images: list["ImageRequest"] | None = Field(default=None)
 
 
 # Properties to receive via API on update
@@ -48,7 +51,9 @@ class Zone(ZoneBase, table=True):
 		default=None,
 		sa_column=Column(Geometry("MULTIPOLYGON", srid=4326)),
 	)
-	images: list["ZoneImage"] = Relationship(back_populates="zone", cascade_delete=True)
+	images: list["ZoneImage"] | None = Relationship(
+		back_populates="zone", cascade_delete=True
+	)
 	# building_id: list[int] | None = Field(default=None, foreign_key="building.id")
 
 

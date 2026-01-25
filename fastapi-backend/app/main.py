@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import building, pings, probe, zone
+from app.routers import building, minio, pings, probe, zone
 
 app = FastAPI()
 
@@ -16,10 +16,11 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
-app.include_router(pings.router)
 app.include_router(building.router)
-app.include_router(zone.router)
+app.include_router(minio.router)
+app.include_router(pings.router)
 app.include_router(probe.router)
+app.include_router(zone.router)
 
 
 @app.get("/")
