@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState, useRef } from "react";
 import { addZone } from "@/actions/zone-add.action";
+import { SmartImageInput } from "@/components/presigned-image/upload-box";
+import { usePresignedImageUpload } from "@/components/presigned-image/logic";
 
 interface ZoneAddFormProps {
 	color: string;
@@ -9,12 +11,45 @@ interface ZoneAddFormProps {
 }
 
 export function ZoneAddForm({ color, geojson }: ZoneAddFormProps) {
-	// ⭐️ KEY POINT: สร้าง version ของ action ที่มี id ฝังอยู่แล้ว
-	// null ตัวแรกคือ context (this) ซึ่งใน server action เราไม่ใช้
-	// const addZoneWithId = addZone.bind(null, slug);
+	// ⭐️ STEP 1: Initialize the uploader hook to manage file uploads
+	// This handles all presigned URL requests, concurrency limits (default 3), and progress tracking
+	const upload = usePresignedImageUpload(3);
 
-	// ส่ง bound action เข้าไปใน hook
+	// ⭐️ STEP 2: Get the server action state from useActionState hook
+	// The original addZone server action handles form submission
 	const [state, formAction, isPending] = useActionState(addZone, null);
+
+	// ⭐️ STEP 3: Create a reference to access the form element in handleSubmit
+	// This allows us to get all form fields (name, description, color, geojson)
+	const formRef = useRef<HTMLFormElement | null>(null);
+
+	// ⭐️ STEP 4: Custom form handler that bridges client-side file data + server action
+	// This function:
+	// 1. Prevents default form submission
+	// 2. Gets all successful file uploads from the uploader
+	// 3. Creates FormData with form fields + file data
+	// 4. Manually calls the server action with combined data
+	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		// Get successful file uploads (returns array of { key, url, name })
+		const uploadedFiles = upload.getSubmitPayload();
+
+		// Get all form fields (name, description, color, geojson)
+		const form = e.currentTarget;
+		const formData = new FormData(form);
+
+		// ⭐️ STEP 5: Append file data to FormData
+		// Add each file's S3 key to the form data (like hidden inputs)
+		// bundle all file keys as JSON string for easy parsing in server action
+		formData.append("images", JSON.stringify(uploadedFiles));
+
+		// ⭐️ STEP 6: Manually invoke the server action with combined FormData
+		// This is equivalent to what useActionState does with <form action={formAction}>
+		startTransition(() => {
+			formAction(formData);
+		});
+	};
 
 	return (
 		<div
@@ -24,7 +59,13 @@ export function ZoneAddForm({ color, geojson }: ZoneAddFormProps) {
 			<div className="text-[clamp(0.5rem,3vw,1.5rem)] text-secondary-foreground/90 font-semibold">
 				Add Zone Information
 			</div>
-			<form action={formAction} className="text-sm text-black dark:text-white">
+			{/* ⭐️ STEP 7: Bind custom handler instead of using action prop directly */}
+			{/* onSubmit={handleFormSubmit} gets file data from uploader before calling server action */}
+			<form
+				onSubmit={handleFormSubmit}
+				className="text-sm text-black dark:text-white"
+				ref={formRef}
+			>
 				<fieldset
 					className="space-y-4 w-full transition-opacity
 										disabled:[&_input]:cursor-progress disabled:[&_input]:opacity-50
@@ -86,6 +127,17 @@ export function ZoneAddForm({ color, geojson }: ZoneAddFormProps) {
 								{state.errors.description.join(", ")}
 							</p>
 						)}
+					</div>
+
+					<div>
+						{/* ⭐️ STEP 8: Replace AssignmentSubmissionPage with SmartImageInput component */}
+						{/* Pass the uploader controller so files are managed properly */}
+						{/* Concurrency limit is 3 files at a time (can be adjusted as needed) */}
+						<SmartImageInput
+							uploader={upload}
+							name="zone_images"
+							label="Zone Images / Floor Plans"
+						/>
 					</div>
 
 					{/* Global Error Message */}

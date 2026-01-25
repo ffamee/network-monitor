@@ -48,6 +48,39 @@ const ZoneSchema = z.object({
 			.pipe(z.record(z.string(), z.any()))
 			.optional(),
 	),
+	// validate images to be an array of objects with filename string property
+	images: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "images ต้องไม่ว่างเปล่า" })
+			.transform((str, ctx) => {
+				try {
+					const parsed = JSON.parse(str);
+					if (!Array.isArray(parsed)) {
+						throw new Error("Not an array");
+					}
+					return parsed;
+				} catch (_e) {
+					ctx.addIssue({
+						code: "custom",
+						message: "รูปแบบ images ไม่ถูกต้อง (Invalid images format)",
+					});
+					return z.NEVER;
+				}
+			})
+			.pipe(
+				z.array(
+					z.object({
+						filename: z.string().min(1, {
+							message: "filename ต้องไม่ว่างเปล่า",
+						}),
+					}),
+				),
+			)
+			.optional(),
+	),
 });
 
 export type State = {
@@ -67,6 +100,7 @@ export async function addZone(
 ): Promise<State> {
 	// 1. Validate Form Data
 	const rawData = Object.fromEntries(formData);
+	// console.log("Raw Form Data:", rawData);
 	const validatedFields = ZoneSchema.safeParse(rawData);
 
 	// console.log("validatedFields:", validatedFields);
@@ -102,7 +136,6 @@ export async function addZone(
 		newSlug = {
 			zone: data.slug ?? "",
 		};
-		// await db.building.update({ where: { id: buildingId }, data: ... })
 	} catch (error) {
 		return {
 			message: `Add Error: ${
