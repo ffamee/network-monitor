@@ -43,6 +43,7 @@ export function ZoneAddForm({ color, geojson }: ZoneAddFormProps) {
 		// Add each file's S3 key to the form data (like hidden inputs)
 		// bundle all file keys as JSON string for easy parsing in server action
 		formData.append("images", JSON.stringify(uploadedFiles));
+		formData.append("hasErrorFiles", upload.hasErrorFiles() ? "true" : "false");
 
 		// ⭐️ STEP 6: Manually invoke the server action with combined FormData
 		// This is equivalent to what useActionState does with <form action={formAction}>
@@ -134,10 +135,16 @@ export function ZoneAddForm({ color, geojson }: ZoneAddFormProps) {
 						{/* Pass the uploader controller so files are managed properly */}
 						{/* Concurrency limit is 3 files at a time (can be adjusted as needed) */}
 						<SmartImageInput
+							disabled={isPending}
 							uploader={upload}
 							name="zone_images"
-							label="Zone Images / Floor Plans"
+							label="Zone Images"
 						/>
+						{state?.errors?.hasErrorFiles && (
+							<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
+								{state.errors.hasErrorFiles.join(", ")}
+							</p>
+						)}
 					</div>
 
 					{/* Global Error Message */}

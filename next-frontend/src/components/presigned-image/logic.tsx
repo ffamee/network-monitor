@@ -118,6 +118,8 @@ export function usePresignedImageUpload(concurrency = DEFAULT_CONCURRENCY) {
 			// .map((f) => ({ key: f.s3Key, url: f.uploadedUrl, name: f.name }));
 			.map((f) => ({ filename: f.s3Key || "" }));
 
+	const hasErrorFiles = () => files.some((f) => f.status !== "success");
+
 	const reset = () => setFiles([]);
 
 	const updateFileState = (id: string, updates: Partial<UploadFile>) => {
@@ -131,6 +133,7 @@ export function usePresignedImageUpload(concurrency = DEFAULT_CONCURRENCY) {
 		addFiles,
 		removeFile,
 		getSubmitPayload,
+		hasErrorFiles,
 		reset,
 	};
 }

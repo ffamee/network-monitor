@@ -81,12 +81,32 @@ const ZoneSchema = z.object({
 			)
 			.optional(),
 	),
+	// validate hasErrorFiles to be a string "true" or "false" (invalid data if it "true")
+	hasErrorFiles: z.preprocess(
+		emptyString,
+		z.enum(["true", "false"]).transform((str, ctx) => {
+			try {
+				if (str === "true") throw new Error("ตรวจสอบไฟล์ที่อัปโหลดอีกครั้ง");
+				return false;
+			} catch (error) {
+				ctx.addIssue({
+					code: "custom",
+					message:
+						error instanceof Error
+							? error.message
+							: "Invalid hasErrorFiles value",
+				});
+				return z.NEVER;
+			}
+		}),
+	),
 });
 
 export type State = {
 	errors?: {
 		name?: string[];
 		description?: string[];
+		hasErrorFiles?: string[];
 	};
 	message?: string | null;
 	inputs?: { [key: string]: FormDataEntryValue };
@@ -100,7 +120,7 @@ export async function addZone(
 ): Promise<State> {
 	// 1. Validate Form Data
 	const rawData = Object.fromEntries(formData);
-	// console.log("Raw Form Data:", rawData);
+	console.log("Raw Form Data:", rawData);
 	const validatedFields = ZoneSchema.safeParse(rawData);
 
 	// console.log("validatedFields:", validatedFields);
