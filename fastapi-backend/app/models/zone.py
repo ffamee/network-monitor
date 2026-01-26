@@ -1,13 +1,3 @@
-# Zone model
-"""
-full model
-id: int
-name: str
-description: str | None
-paths: (polygon geojson)
-building_id: int[] (foreign key to building) # not yet implemented
-"""
-
 from typing import TYPE_CHECKING, Any
 
 from geoalchemy2 import Geometry, WKBElement, WKTElement

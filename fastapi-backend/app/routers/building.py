@@ -1,5 +1,9 @@
 from fastapi import APIRouter
 
+from app.crud import building as crud_building
+from app.dependencies import SessionDep
+from app.models.building import BuildingCreate, BuildingRead
+
 router = APIRouter(
 	prefix="/building",
 	tags=["building"],
@@ -25,6 +29,12 @@ base_building = {
 building_data = {"*": base_building}
 
 
+@router.get("", response_model=list[BuildingRead])
+async def get_all_buildings(session: SessionDep):
+	# Retrieve all buildings from the database
+	return await crud_building.get_all_building(session=session)
+
+
 @router.get("/{building}")
 async def get_building(building: str) -> dict[str, object]:
 	print(f"Requested building: {building}")
@@ -34,16 +44,21 @@ async def get_building(building: str) -> dict[str, object]:
 	return building_data[building]
 
 
-@router.post("")
-async def create_building(new_building: dict[str, object]) -> dict[str, str]:
-	print(f"Creating new building with data: {new_building} {new_building.get('slug')}")
-	# Here you would normally save the new building data to your database
-	# copy base_building to new building_data
-	slug = str(new_building.get("name")).lower().replace(" ", "-")
-	# building_data[slug] = base_building.copy()
-	# building_data[slug].update(new_building)
-	building_data[slug] = new_building
-	return {"message": "Building created successfully", "building": slug}
+# @router.post("")
+# async def create_building(new_building: dict[str, object]) -> dict[str, str]:
+# 	print(f"Creating new building with data: {new_building} {new_building.get('slug')}")
+# 	# Here you would normally save the new building data to your database
+# 	# copy base_building to new building_data
+# 	slug = str(new_building.get("name")).lower().replace(" ", "-")
+# 	# building_data[slug] = base_building.copy()
+# 	# building_data[slug].update(new_building)
+# 	building_data[slug] = new_building
+# 	return {"message": "Building created successfully", "building": slug}
+
+
+@router.post("", response_model=BuildingRead)
+async def create_building(session: SessionDep, building_in: BuildingCreate):
+	return await crud_building.create_building(session=session, building_in=building_in)
 
 
 @router.put("/{building}")

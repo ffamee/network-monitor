@@ -6,6 +6,7 @@ from pydantic import ConfigDict
 from sqlmodel import TIMESTAMP, Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+	from .building import Building
 	from .zone import Zone
 
 
@@ -51,3 +52,12 @@ class ZoneImage(ImageBase, table=True):
 	id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 	zone_id: int = Field(foreign_key="zone.id", index=True, ondelete="CASCADE")
 	zone: "Zone" = Relationship(back_populates="images")
+
+
+# Database table model for BuildingImage
+class BuildingImage(ImageBase, table=True):
+	__tablename__ = "building_images"
+
+	id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+	building_id: int = Field(foreign_key="building.id", index=True, ondelete="CASCADE")
+	building: "Building" = Relationship(back_populates="images")
