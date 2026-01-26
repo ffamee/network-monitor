@@ -83,6 +83,7 @@ class StorageService:
 					raise ValueError("Unsupported file extension")
 
 				if item.type not in [
+					"image/jpg",
 					"image/jpeg",
 					"image/png",
 					"image/gif",
@@ -90,8 +91,13 @@ class StorageService:
 				]:
 					raise ValueError("Unsupported file type")
 
+				# bug in jpg compare to jpeg
+				if ext == ".jpg" and item.type == "image/jpeg":
+					ext = ".jpeg"
 				if ext != f".{item.type.split('/')[-1]}":
-					raise ValueError("File extension does not match file type")
+					raise ValueError(
+						"File extension does not match file type", ext, item.type
+					)
 
 				obj_name = f"{uuid.uuid4()}{ext}"
 				# ใช้ Presigned PUT สำหรับอัปโหลด
