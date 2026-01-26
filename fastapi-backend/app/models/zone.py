@@ -17,7 +17,7 @@ from shapely.geometry import mapping
 from slugify import slugify
 from sqlmodel import Column, Field, Relationship, SQLModel
 
-from app.models.image import ImageRequest
+from app.models.image import ImageCreate, ImageDelete, ImageRead
 
 if TYPE_CHECKING:
 	from .image import ZoneImage
@@ -36,12 +36,12 @@ class ZoneBase(SQLModel):
 # Properties to receive via API on creation
 class ZoneCreate(ZoneBase):
 	geojson: dict[str, Any] | None = Field(default=None)
-	images: list["ImageRequest"] | None = Field(default=None)
+	images: list["ImageCreate"] | None = Field(default=None)
 
 
 # Properties to receive via API on update
 class ZoneUpdate(ZoneCreate):
-	pass
+	delete_images: list["ImageDelete"] | None = Field(default=None)
 
 
 # Database table model
@@ -60,8 +60,6 @@ class Zone(ZoneBase, table=True):
 # Properties to return via API
 class ZoneRead(ZoneBase):
 	id: int
-	# geojson: dict[str, Any] | None = Field(default=None, validation_alias="paths")
-	# geojson: dict[str, Any] | None = Field(default=None, serialization_alias="paths")
 	geojson: dict[str, Any] | None = Field(
 		default=None,
 		validation_alias="paths",
@@ -85,3 +83,5 @@ class ZoneRead(ZoneBase):
 	def slug(self) -> str:
 		"""Generate a URL-friendly slug from the zone id and name."""
 		return f"{self.id}-{slugify(self.name)}"
+
+	images: list["ImageRead"] | None = Field(default=None)

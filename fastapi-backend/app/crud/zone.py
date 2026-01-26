@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Sequence
 
 from fastapi import HTTPException
@@ -5,24 +6,31 @@ from geoalchemy2.shape import from_shape
 from shapely import MultiPolygon
 from shapely.geometry import shape
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
+from app.models.image import ZoneImage
 from app.models.zone import Zone, ZoneCreate, ZoneUpdate
+from app.services.storage import StorageService
+
+logger = logging.getLogger(__name__)
 
 
 async def get_all_zone(*, session: AsyncSession) -> Sequence[Zone]:
-	statement = select(Zone)
+	statement = select(Zone).options(selectinload(Zone.images))
 	results = await session.execute(statement)
 	zones = results.scalars().all()
 	return zones
 
 
 async def get_zone(*, session: AsyncSession, zone_id: int) -> Zone | None:
-	zone = await session.get(Zone, zone_id)
+	zone = await session.get(Zone, zone_id, options=[selectinload(Zone.images)])
 	return zone
 
 
-async def create_zone(*, session: AsyncSession, zone_in: ZoneCreate) -> Zone:
+async def create_zone(
+	*, session: AsyncSession, storage: StorageService, zone_in: ZoneCreate
+) -> Zone:
 	try:
 		geometry_wkt = None
 		polygon_list = []
@@ -41,16 +49,13 @@ async def create_zone(*, session: AsyncSession, zone_in: ZoneCreate) -> Zone:
 					geom_dict = feature["geometry"]
 					polygon = shape(geom_dict)
 					polygon_list.append(polygon)
-				# print(polygon_list)
 				geometry_wkt = from_shape(MultiPolygon(polygon_list), srid=4326)
-				# แกะเอา geometry จาก feature ตัวแรก
-				# geom_dict = features[0]["geometry"]
-				# geometry_wkt = from_shape(shape(geom_dict), srid=4326)
 	except Exception as e:
 		raise HTTPException(
 			status_code=400, detail=f"Failed to parse geojson: {str(e)}"
 		)
 
+	# create zone
 	zone = Zone(
 		name=zone_in.name,
 		description=zone_in.description,
@@ -58,8 +63,23 @@ async def create_zone(*, session: AsyncSession, zone_in: ZoneCreate) -> Zone:
 		paths=geometry_wkt,
 	)
 	session.add(zone)
+
+	# flush to get zone.id
+	await session.flush()
+
+	# create image
+	if zone_in.images:
+		for image in zone_in.images:
+			try:
+				image_url = await storage.upload_file(f"zones/{zone.id}", image)
+				zone_image = ZoneImage(url=image_url, zone_id=zone.id)
+				session.add(zone_image)
+			except Exception as e:
+				logger.error(f"Error creating image record: {e}")
+				raise HTTPException(status_code=500, detail="Failed to upload image")
+
 	await session.commit()
-	await session.refresh(zone)
+	await session.refresh(zone, attribute_names=["images"])
 	return zone
 
 

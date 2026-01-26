@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from fastapi import APIRouter, HTTPException
 
 from app.crud import zone as crud_zone
-from app.dependencies import SessionDep
+from app.dependencies import SessionDep, StorageDep
 from app.models.zone import Zone, ZoneCreate, ZoneRead, ZoneUpdate
 
 router = APIRouter(
@@ -400,10 +400,14 @@ async def get_zone(session: SessionDep, zone_id: int) -> Zone:
 
 
 @router.post("", response_model=ZoneRead)
-async def create_zone(session: SessionDep, zone_in: ZoneCreate) -> Zone:
+async def create_zone(
+	session: SessionDep, storage: StorageDep, zone_in: ZoneCreate
+) -> Zone:
 	# create new zone in database
 	print(f"Creating zone: {zone_in}")
-	zone = await crud_zone.create_zone(session=session, zone_in=zone_in)
+	zone = await crud_zone.create_zone(
+		session=session, storage=storage, zone_in=zone_in
+	)
 	return zone
 
 

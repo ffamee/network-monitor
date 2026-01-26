@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.dependencies import StorageDep
-from app.models.image import ImageRequest
+from app.models.presignedurl import PresignedRequest, PresignedResponse
 
 router = APIRouter(
 	prefix="/minio",
@@ -36,21 +36,13 @@ def check_bucket(storage: StorageDep):
 	return res
 
 
-@router.post("/get-presigned-url")
+@router.post("/get-presigned-urls")
 def get_presigned_url(
 	storage: StorageDep,
-	req: ImageRequest,
-):
-	url = storage.generate_presigned_url(req.filename)
+	req: list[PresignedRequest],
+) -> list[PresignedResponse | None]:
+	url = storage.generate_presigned_urls(req)
 	if url:
-		return {"status": "ok", **url}
+		return url
 	else:
-		return {"status": "error", "message": "Failed to generate presigned URL"}
-
-
-@router.post("/confirm-upload")
-def test_confirm_upload(
-	storage: StorageDep,
-	req: ImageRequest,
-):
-	return storage.upload_file("zones/1", req)
+		raise Exception("Failed to generate presigned URLs")

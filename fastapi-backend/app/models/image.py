@@ -9,11 +9,6 @@ if TYPE_CHECKING:
 	from .zone import Zone
 
 
-# Presigned URL Model
-class ImageRequest(SQLModel):
-	filename: str
-
-
 # Shared properties
 class ImageBase(SQLModel):
 	"""Base model for all image types (Zone images, Building images, etc.)"""
@@ -36,13 +31,17 @@ class ImageBase(SQLModel):
 
 
 # Properties to receive via API on creation
-class ImageCreate(ImageBase):
-	pass
+class ImageCreate(SQLModel):
+	filename: str  # uuid filename
 
 
-# Properties to receive via API on update
-class ImageUpdate(ImageBase):
-	pass
+# Properties to receive via API on update (remove filename as it's not updatable)
+class ImageDelete(SQLModel):
+	filename: str  # full path of image
+
+
+class ImageRead(SQLModel):
+	url: str
 
 
 # Database table model for ZoneImage
