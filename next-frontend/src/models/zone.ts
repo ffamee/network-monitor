@@ -7,6 +7,7 @@ type Zone = {
 	color: string;
 	geojson?: string;
 	images: ImageInfo[];
+	slug: string;
 	// buildings: Building[];
 };
 

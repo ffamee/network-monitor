@@ -10,7 +10,7 @@ export default async function EditZonePage({
 	const { slug } = await params;
 	const zoneId = getIdFromSlug(slug);
 	if (!zoneId || isNaN(Number(zoneId))) notFound();
-	const zone = await fetch(
+	const res = await fetch(
 		`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/${zoneId}`,
 		{
 			headers: {
@@ -18,16 +18,9 @@ export default async function EditZonePage({
 			},
 			credentials: "include",
 		},
-	)
-		.then((res) => {
-			if (!res.ok) {
-				throw new Error("Network response was not ok");
-			}
-			return res.json();
-		})
-		.catch(() => {
-			throw new Error("Failed to fetch zone data");
-		});
+	);
+	if (!res.ok) throw new Error("Network response was not ok");
+	const zone = await res.json();
 
 	if (!zone) notFound();
 	if (zone.slug !== slug) {

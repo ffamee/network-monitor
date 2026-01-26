@@ -3,15 +3,10 @@ import Link from "next/link";
 import BuildingCard from "./building-card";
 import AddButton from "./add-button";
 import { ZoneNav } from "./zone-nav";
-
-type ZoneData = {
-	id: string;
-	name: string;
-	description: string;
-	totalBuildings: number;
-	totalProbes: number;
-	images: string[];
-};
+import { getIdFromSlug } from "@/lib/slug";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
+import type { Zone } from "@/models/zone";
+import Image from "next/image";
 
 async function getZoneData(zoneId: string) {
 	const res = await fetch(
@@ -24,6 +19,9 @@ async function getZoneData(zoneId: string) {
 		},
 	);
 	if (!res.ok) {
+		if (res.status === 404) {
+			return notFound();
+		}
 		throw new Error("Failed to fetch zone data");
 	}
 	const data = await res.json();
@@ -103,8 +101,28 @@ export default async function ZonePage({
 	params: Promise<{ zone: string }>;
 }) {
 	const { zone } = await params;
-	const zoneData: ZoneData = await getZoneData(zone);
-	const bgImage = zoneData.images.length ? zoneData.images[0] : undefined;
+
+	const zoneId = getIdFromSlug(zone);
+	if (!zoneId || isNaN(Number(zoneId))) notFound();
+	const zoneData: Zone = await getZoneData(zoneId);
+
+	if (!zoneData) notFound();
+	if (zoneData.slug !== zone) {
+		if (process.env.NODE_ENV === "development") {
+			redirect(`/dashboard/${zoneData.slug}`);
+		} else {
+			permanentRedirect(`/dashboard/${zoneData.slug}`);
+		}
+	}
+
+	console.log("zoneData:", zoneData);
+
+	const totalBuildings = buildings.length;
+	const totalProbes = buildings.reduce(
+		(acc, building) => acc + building.totalProbes,
+		0,
+	);
+
 	return (
 		<div className="min-h-full h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
 			<main className="pt-24 pb-12 px-4 flex flex-col gap-4">
@@ -112,12 +130,23 @@ export default async function ZonePage({
 					{/* Zone Header Info */}
 					<div
 						className={`relative rounded-3xl overflow-hidden h-64 border border-accent shadow-2xl`}
-						style={{
-							backgroundImage: `url(${bgImage})`,
-							backgroundPosition: "right center",
-							backgroundSize: "cover",
-						}}
+						// style={{
+						// 	backgroundImage: `url(${process.env.BUCKET_URL}/${bgImage})`,
+						// 	backgroundPosition: "right center",
+						// 	backgroundSize: "cover",
+						// }}
 					>
+						{zoneData.images.length > 0 && (
+							<Image
+								src={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${zoneData.images[0].url}`}
+								alt="Zone Background Image"
+								fill
+								sizes="100vw"
+								priority
+								unoptimized={process.env.NODE_ENV === "development"}
+								className="object-cover object-center w-full h-full"
+							/>
+						)}
 						<div className="absolute inset-0 bg-linear-to-r from-stone-900 via-stone-900/80 to-transparent"></div>
 
 						<div className="relative z-10 p-[clamp(1rem,4vw,2rem)] w-full justify-between flex flex-col h-full">
@@ -150,7 +179,7 @@ export default async function ZonePage({
 									</div>
 									<div>
 										<div className="text-2xl font-bold text-white">
-											{zoneData.totalBuildings}
+											{totalBuildings}
 										</div>
 										<div className="text-xs text-slate-500">Buildings</div>
 									</div>
@@ -162,7 +191,7 @@ export default async function ZonePage({
 									</div>
 									<div>
 										<div className="text-2xl font-bold text-white">
-											{zoneData.totalProbes}
+											{totalProbes}
 										</div>
 										<div className="text-xs text-slate-500">Active Probes</div>
 									</div>
