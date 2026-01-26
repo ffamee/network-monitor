@@ -9,19 +9,11 @@ import ZoneCard from "./zone-card";
 import { useSearchParams } from "next/navigation";
 import Lightbox from "./light-box";
 import ZonePolygon from "./zone-polygon";
-
-type Poi = { key: string; location: google.maps.LatLngLiteral };
-
-type ZoneInfo = {
-	name: string;
-	color: string;
-	paths: google.maps.LatLngLiteral[];
-	locations: Poi[];
-	slug: string;
-};
+import { ImageInfo } from "@/models/image";
+import { Zone } from "@/models/zone";
 
 export default function MapPage() {
-	const [zone, setZone] = useState<ZoneInfo[]>([]);
+	const [zone, setZone] = useState<Zone[]>([]);
 	const [isPanelOpen, setIsPanelOpen] = useState(false);
 	const [visible, setVisible] = useState<{
 		[key: string]: { polygon: boolean; pin: boolean };
@@ -30,7 +22,7 @@ export default function MapPage() {
 	const queryZone = searchParams.get("zone");
 
 	const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-	const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+	const [lightboxImages, setLightboxImages] = useState<ImageInfo[]>([]);
 	const [lightboxIndex, setLightboxIndex] = useState(0);
 	const [selectedZone, setSelectedZone] = useState<string | null>(queryZone);
 
@@ -43,7 +35,7 @@ export default function MapPage() {
 						"Content-Type": "application/json",
 					},
 					credentials: "include",
-				}
+				},
 			);
 			const data = await response.json();
 			// receive data from backend as Object
@@ -52,13 +44,13 @@ export default function MapPage() {
 				data.reduce(
 					(
 						acc: { [key: string]: { polygon: boolean; pin: boolean } },
-						z: ZoneInfo
+						z: Zone,
 					) => {
 						acc[z.name] = { polygon: true, pin: false };
 						return acc;
 					},
-					{}
-				)
+					{},
+				),
 			);
 		};
 		fetchZones();
@@ -86,7 +78,7 @@ export default function MapPage() {
 		});
 	};
 
-	const handleLightbox = (images: string[], index: number) => {
+	const handleLightbox = (images: ImageInfo[], index: number) => {
 		setLightboxIndex(index);
 		setLightboxImages(images);
 		setIsLightboxOpen(true);
@@ -97,13 +89,15 @@ export default function MapPage() {
 	};
 
 	const filteredLocations = useMemo(() => {
-		return zone.flatMap((z) => {
-			const isPinVisible = visible[z.name]?.pin;
-			return isPinVisible
-				? z.locations.map((location) => ({ ...location, color: z.color }))
-				: [];
-		});
-	}, [zone, visible]);
+		// return zone.flatMap((z) => {
+		// 	const isPinVisible = visible[z.name]?.pin;
+		// 	return isPinVisible
+		// 		? z.locations.map((location) => ({ ...location, color: z.color }))
+		// 		: [];
+		// });
+		// }, [zone, visible]);
+		return [];
+	}, []);
 
 	return (
 		<main className="w-full h-[calc(100%-4rem)] mt-16 overscroll-none">
@@ -128,11 +122,11 @@ export default function MapPage() {
 							visible[z.name]?.polygon && (
 								<ZonePolygon
 									key={z.name}
-									paths={z.paths}
+									geojson={z.geojson}
 									color={z.color}
 									setSelectedZone={() => setSelectedZone(z.slug)}
 								/>
-							)
+							),
 					)}
 				</>
 				<Cluster locations={filteredLocations} />

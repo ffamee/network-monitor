@@ -1,9 +1,10 @@
+import { ImageInfo } from "@/models/image";
 import { ImageOff } from "lucide-react";
 import Image from "next/image";
 
 interface ImageGridProps {
-	images: string[]; // รับ URL ของรูปภาพเข้ามา
-	show: (images: string[], index: number) => void; // ฟังก์ชันเปิด Lightbox
+	images: ImageInfo[]; // รับ URL ของรูปภาพเข้ามา
+	show: (images: ImageInfo[], index: number) => void; // ฟังก์ชันเปิด Lightbox
 }
 
 export default function ImageGrid({ images, show }: ImageGridProps) {
@@ -53,9 +54,10 @@ export default function ImageGrid({ images, show }: ImageGridProps) {
 						onClick={() => show(images, index)}
 					>
 						<Image
-							src={src}
+							src={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${src.url}`}
 							alt={`img-${index}`}
 							fill
+							unoptimized={process.env.NODE_ENV === "development"}
 							className="object-cover hover:opacity-90 transition-opacity cursor-pointer"
 						/>
 

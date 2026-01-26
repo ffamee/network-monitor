@@ -2,9 +2,10 @@
 import { useEffect, useCallback } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ImageInfo } from "@/models/image";
 
 interface LightboxProps {
-	images: string[];
+	images: ImageInfo[];
 	isOpen: boolean;
 	initialIndex: number;
 	onClose: () => void;
@@ -27,7 +28,7 @@ export default function Lightbox({
 			if (e.key === "ArrowLeft")
 				setIndex((initialIndex - 1 + images.length) % images.length); // วนกลับไปรูปสุดท้าย
 		},
-		[isOpen, onClose, initialIndex, images.length, setIndex]
+		[isOpen, onClose, initialIndex, images.length, setIndex],
 	);
 
 	useEffect(() => {
@@ -67,9 +68,10 @@ export default function Lightbox({
 			{/* Main Image Container */}
 			<div className="relative w-full h-full max-w-5xl max-h-[90vh] p-4 flex items-center justify-center">
 				<Image
-					src={images[initialIndex]}
+					src={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${images[initialIndex].url}`}
 					alt="Full view"
 					fill
+					unoptimized={process.env.NODE_ENV == "development"}
 					className="object-contain" // สำคัญ! ทำให้รูปไม่เบี้ยว แต่ขยายเต็มพื้นที่ที่มี
 					priority
 				/>

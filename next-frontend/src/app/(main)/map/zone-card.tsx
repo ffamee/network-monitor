@@ -21,23 +21,81 @@ import {
 import { useMediaQuery } from "usehooks-ts";
 import Image from "next/image";
 import Link from "next/link";
-
-type ZoneInfo = {
-	name: string;
-	color: string;
-	locations: { key: string; location: google.maps.LatLngLiteral }[];
-	images: string[];
-	slug: string;
-};
+import { Zone } from "@/models/zone";
+import { ImageInfo } from "@/models/image";
+import { getIdFromSlug } from "@/lib/slug";
 
 interface ZoneCardProps {
 	selectedZone: string | null;
-	setLightbox: (images: string[], index: number) => void;
+	setLightbox: (images: ImageInfo[], index: number) => void;
 }
+
+const locations = [
+	{
+		key: "zone-a-poi-1",
+		location: { lat: 13.84905181, lng: 100.56649934 },
+	},
+	{
+		key: "zone-a-poi-2",
+		location: { lat: 13.84909917, lng: 100.56706385 },
+	},
+	{
+		key: "zone-a-poi-3",
+		location: { lat: 13.85007482, lng: 100.56836345 },
+	},
+	{
+		key: "zone-a-poi-4",
+		location: { lat: 13.84835769, lng: 100.56952907 },
+	},
+	{
+		key: "zone-a-poi-5",
+		location: { lat: 13.84709586, lng: 100.56796151 },
+	},
+	{
+		key: "zone-a-poi-6",
+		location: { lat: 13.84781133, lng: 100.57100285 },
+	},
+	{
+		key: "zone-a-poi-7",
+		location: { lat: 13.84661454, lng: 100.56758637 },
+	},
+	{
+		key: "zone-a-poi-8",
+		location: { lat: 13.84627631, lng: 100.56792132 },
+	},
+	{
+		key: "zone-a-poi-9",
+		location: { lat: 13.84625036, lng: 100.56973004 },
+	},
+	{
+		key: "zone-a-poi-10",
+		location: { lat: 13.84511854, lng: 100.56880558 },
+	},
+	{
+		key: "zone-a-poi-11",
+		location: { lat: 13.84638038, lng: 100.56733181 },
+	},
+	{
+		key: "zone-a-poi-12",
+		location: { lat: 13.84674462, lng: 100.56510774 },
+	},
+	{
+		key: "zone-a-poi-13",
+		location: { lat: 13.84584703, lng: 100.57132448 },
+	},
+	{
+		key: "zone-a-poi-14",
+		location: { lat: 13.8447543, lng: 100.57115022 },
+	},
+	{
+		key: "zone-a-poi-15",
+		location: { lat: 13.84690073, lng: 100.5719541 },
+	},
+];
 
 export default function ZoneCard(props: ZoneCardProps) {
 	const [loading, setLoading] = useState(false);
-	const [zoneData, setZoneData] = useState<ZoneInfo | null>(null);
+	const [zoneData, setZoneData] = useState<Zone | null>(null);
 	const [isCollapsed, setIsCollapsed] = useState(true);
 	const isMobile = useMediaQuery(`(max-width: 480px)`);
 	const snapPoints = [
@@ -52,16 +110,21 @@ export default function ZoneCard(props: ZoneCardProps) {
 				setZoneData(null);
 				return;
 			}
+			const zoneId = getIdFromSlug(props.selectedZone);
+			if (!zoneId || isNaN(Number(zoneId))) {
+				setZoneData(null);
+				return;
+			}
 			setLoading(true);
 			try {
 				const response = await fetch(
-					`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/${props.selectedZone}`,
+					`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/${zoneId}`,
 					{
 						headers: {
 							"Content-Type": "application/json",
 						},
 						credentials: "include",
-					}
+					},
 				);
 				if (response.ok) {
 					const data = await response.json();
@@ -156,8 +219,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 									<Skeleton className="h-6 w-5/6 rounded" />
 								) : (
 									<span className="text-sm font-normal text-muted-foreground line-clamp-2">
-										Lorem ipsum dolor sit amet consectetur adipisicing elit.
-										Assumenda, doloribus.
+										{zoneData.description || ""}
 									</span>
 								)}
 							</DrawerTitle>
@@ -189,10 +251,11 @@ export default function ZoneCard(props: ZoneCardProps) {
 												{zoneData.images.map((src, index) => (
 													<Image
 														key={index}
-														src={src}
+														src={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${src.url}`}
 														alt={`img-${index}`}
 														width={400}
 														height={400}
+														unoptimized={process.env.NODE_ENV == "development"}
 														className="object-cover hover:opacity-90 transition-opacity cursor-pointer rounded-lg aspect-auto w-auto h-full snap-start snap-always"
 														onClick={() =>
 															props.setLightbox(zoneData.images, index)
@@ -216,7 +279,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 												</span>
 											</div>
 											<div className="text-lg font-semibold text-secondary-foreground/75">
-												{Math.round(zoneData.locations.length / 3)}
+												{Math.round(locations.length / 3)}
 												<span className="text-sm font-normal text-card-foreground/75 mx-2">
 													ชั้น
 												</span>
@@ -230,7 +293,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 												</span>
 											</div>
 											<div className="text-lg font-semibold text-secondary-foreground/75">
-												{zoneData.locations.length}
+												{locations.length}
 												<span className="text-sm font-normal text-card-foreground/75 mx-2">
 													ตัว
 												</span>
@@ -249,7 +312,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 											Attached Devices
 										</div>
 										<div className="grid gap-2">
-											{zoneData.locations.map((loc, index) => {
+											{locations.map((loc, index) => {
 												const color = [
 													"bg-rose-400",
 													"bg-emerald-400",
@@ -309,10 +372,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 					{zoneData.name}
 					<br />
 					<span className="text-xs font-normal text-muted-foreground">
-						Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum ad
-						eum porro quod cupiditate, veniam exercitationem illo quasi in
-						aliquam, error quidem ratione! Earum fugit unde doloremque aut
-						inventore. Vitae?
+						{zoneData.description || ""}
 					</span>
 				</label>
 				<div className="absolute right-2 top-2 px-2 group-data-[state=collapsed]:hidden">
@@ -335,7 +395,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 						<span className="text-xs text-card-foreground/75">จำนวนอาคาร</span>
 					</div>
 					<div className="text-lg font-semibold text-secondary-foreground/75">
-						{Math.round(zoneData.locations.length / 3)}
+						{Math.round(locations.length / 3)}
 						<span className="text-sm font-normal text-card-foreground/75 mx-2">
 							ชั้น
 						</span>
@@ -349,7 +409,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 						</span>
 					</div>
 					<div className="text-lg font-semibold text-secondary-foreground/75">
-						{zoneData.locations.length}
+						{locations.length}
 						<span className="text-sm font-normal text-card-foreground/75 mx-2">
 							ตัว
 						</span>
@@ -365,7 +425,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 					Attached Devices
 				</div>
 				<div className="grid gap-2">
-					{zoneData.locations.map((loc, index) => {
+					{locations.map((loc, index) => {
 						const color = ["bg-rose-400", "bg-emerald-400", "bg-amber-400"][
 							index % 3
 						];
