@@ -41,7 +41,9 @@ class ZoneCreate(ZoneBase):
 
 # Properties to receive via API on update
 class ZoneUpdate(ZoneCreate):
-	delete_images: list["ImageDelete"] | None = Field(default=None)
+	deleted_images: list["ImageDelete"] | None = Field(
+		default=None, validation_alias="deletedImages"
+	)
 
 
 # Database table model

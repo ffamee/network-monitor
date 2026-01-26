@@ -84,9 +84,13 @@ async def create_zone(
 
 
 async def update_zone(
-	*, session: AsyncSession, zone_id: int, zone_update: ZoneUpdate
+	*,
+	session: AsyncSession,
+	storage: StorageService,
+	zone_id: int,
+	zone_update: ZoneUpdate,
 ) -> Zone:
-	zone = await session.get(Zone, zone_id)
+	zone = await session.get(Zone, zone_id, options=[selectinload(Zone.images)])
 	if not zone:
 		raise HTTPException(status_code=404, detail="Zone not found")
 
@@ -120,7 +124,36 @@ async def update_zone(
 	zone.color = zone_update.color
 	zone.paths = geometry_wkt
 
+	if zone_update.images:
+		# add new images first
+		for image in zone_update.images:
+			try:
+				image_url = await storage.upload_file(f"zones/{zone.id}", image)
+				zone_image = ZoneImage(url=image_url, zone_id=zone.id)
+				session.add(zone_image)
+			except Exception as e:
+				logger.error(f"Error creating image record: {e}")
+				raise HTTPException(status_code=500, detail="Failed to upload image")
+
+	if zone_update.deleted_images:
+		# then delete specified images
+		images_to_delete = [
+			img
+			for img in zone.images
+			if any(
+				image_del.filename == img.url
+				for image_del in zone_update.deleted_images
+			)
+		]
+		for img in images_to_delete:
+			try:
+				storage.delete_file_by_url(img.url)
+				await session.delete(img)
+			except Exception as e:
+				logger.error(f"Error deleting image record: {e}")
+				raise HTTPException(status_code=500, detail="Failed to delete image")
+
 	session.add(zone)
 	await session.commit()
-	await session.refresh(zone)
+	await session.refresh(zone, attribute_names=["images"])
 	return zone

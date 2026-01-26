@@ -118,15 +118,14 @@ class StorageService:
 				result.append(None)
 		return result
 
-	def _delete_file(self, bucket: str, file_path: str) -> None:
-		"""Delete file from specified bucket.
+	def _delete_file(self, file_path: str) -> None:
+		"""Delete file from temp bucket.
 
 		Args:
-			bucket: Target bucket name.
 			file_path: Object path within bucket.
 		"""
 		try:
-			self.client.remove_object(bucket, file_path)
+			self.client.remove_object(self.temp_bucket, file_path)
 			print(f"Deleted file: {file_path}")
 		except Exception as e:
 			print(f"Error deleting file: {e}")
@@ -153,7 +152,7 @@ class StorageService:
 
 			self.client.copy_object(self.main_bucket, destination_path, copy_source)
 			# 2. ลบไฟล์ต้นฉบับออกจาก Temp (เพราะย้ายมาแล้ว)
-			self._delete_file(self.temp_bucket, temp_filename)
+			self._delete_file(temp_filename)
 
 			return destination_path
 
@@ -193,6 +192,20 @@ class StorageService:
 
 			return final_path
 		except Exception as e:
+			raise e
+
+	def delete_file_by_url(self, file_path: str) -> None:
+		"""Delete file from main storage by URL.
+
+		Args:
+			file_path: Full URL of the file to delete.
+		"""
+		try:
+			self.client.remove_object(self.main_bucket, file_path)
+			print(f"Deleted file from URL: {file_path}")
+		except Exception as e:
+			print(f"Error deleting file by URL: {e}")
+			# การลบไฟล์พลาด อาจจะไม่ต้อง raise error รุนแรงก็ได้ แล้วแต่ policy
 			raise e
 
 

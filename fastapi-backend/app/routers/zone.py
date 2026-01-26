@@ -413,12 +413,12 @@ async def create_zone(
 
 @router.put("/{zone_id}", response_model=ZoneRead)
 async def update_zone(
-	session: SessionDep, zone_id: int, updated_data: ZoneUpdate
+	session: SessionDep, storage: StorageDep, zone_id: int, updated_data: ZoneUpdate
 ) -> Zone:
 	# update zone data in database
 	print(f"Updating zone: {zone_id} with data: {updated_data}")
 	zone = await crud_zone.update_zone(
-		session=session, zone_id=zone_id, zone_update=updated_data
+		session=session, storage=storage, zone_id=zone_id, zone_update=updated_data
 	)
 	return zone
 
