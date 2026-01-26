@@ -33,5 +33,5 @@ export default async function EditZonePage({
 
 	console.dir(zone, { depth: null });
 
-	return <EditZoneComponentPage zone={zone} />;
+	return <EditZoneComponentPage zone={zone} zoneId={zoneId} />;
 }

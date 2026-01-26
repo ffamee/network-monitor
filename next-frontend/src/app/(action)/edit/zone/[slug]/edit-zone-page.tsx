@@ -7,11 +7,34 @@ import { useEffect, useState } from "react";
 
 interface EditZonePageProps {
 	zone: Zone;
+	zoneId: string;
 }
 
-export default function EditZoneComponentPage({ zone }: EditZonePageProps) {
+const formatFeatureCollections = (geojson: GeoJSON.Geometry) => {
+	if (geojson.type !== "MultiPolygon") {
+		return "";
+	}
+	return {
+		type: "FeatureCollection",
+		features: geojson.coordinates.map((polygon) => ({
+			type: "Feature",
+			properties: { mode: "polygon", selected: false },
+			geometry: {
+				type: "Polygon",
+				coordinates: polygon,
+			},
+		})),
+	};
+};
+
+export default function EditZoneComponentPage({
+	zone,
+	zoneId,
+}: EditZonePageProps) {
 	const [paths, setPaths] = useState<string | null>(
-		JSON.stringify(zone.geojson) || null,
+		zone.geojson
+			? JSON.stringify(formatFeatureCollections(zone.geojson))
+			: null,
 	);
 	const [color, setColor] = useState<string>(zone.color);
 
@@ -30,7 +53,7 @@ export default function EditZoneComponentPage({ zone }: EditZonePageProps) {
 				onColorChange={setColor}
 			/>
 			<div className="py-4 md:py-0 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
-				<ZoneEditForm {...{ zone, paths, color }} />
+				<ZoneEditForm {...{ zone, paths, color, zoneId }} />
 			</div>
 		</div>
 	);

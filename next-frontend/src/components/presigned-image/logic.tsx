@@ -30,6 +30,8 @@ const DEFAULT_CONCURRENCY = 3;
 export function usePresignedImageUpload(concurrency = DEFAULT_CONCURRENCY) {
 	const limit = useMemo(() => pLimit(concurrency), [concurrency]);
 	const [files, setFiles] = useState<UploadFile[]>([]);
+	// ⭐️ Track deleted images (for update/edit mode)
+	const [deletedImages, setDeletedImages] = useState<string[]>([]);
 
 	const addFiles = async (selected: File[]) => {
 		if (!selected.length) return;
@@ -118,9 +120,37 @@ export function usePresignedImageUpload(concurrency = DEFAULT_CONCURRENCY) {
 			// .map((f) => ({ key: f.s3Key, url: f.uploadedUrl, name: f.name }));
 			.map((f) => ({ filename: f.s3Key || "" }));
 
+	// ⭐️ Get list of deleted images (for update/edit mode)
+	const getDeletedImages = () =>
+		deletedImages.map((img) => ({
+			filename: img,
+		}));
+
+	// ⭐️ Toggle image deletion status (for update/edit mode)
+	const toggleDeleteImage = (imageKey: string) => {
+		setDeletedImages((prev) =>
+			prev.includes(imageKey)
+				? prev.filter((key) => key !== imageKey)
+				: [...prev, imageKey],
+		);
+	};
+
+	// ⭐️ Check if an image is marked for deletion
+	const isImageMarkedForDeletion = (imageKey: string) => {
+		return deletedImages.includes(imageKey);
+	};
+
+	// ⭐️ Clear deleted images list (useful for reset)
+	const clearDeletedImages = () => {
+		setDeletedImages([]);
+	};
+
 	const hasErrorFiles = () => files.some((f) => f.status !== "success");
 
-	const reset = () => setFiles([]);
+	const reset = () => {
+		setFiles([]);
+		setDeletedImages([]);
+	};
 
 	const updateFileState = (id: string, updates: Partial<UploadFile>) => {
 		setFiles((prev) =>
@@ -133,6 +163,10 @@ export function usePresignedImageUpload(concurrency = DEFAULT_CONCURRENCY) {
 		addFiles,
 		removeFile,
 		getSubmitPayload,
+		getDeletedImages,
+		toggleDeleteImage,
+		isImageMarkedForDeletion,
+		clearDeletedImages,
 		hasErrorFiles,
 		reset,
 	};

@@ -8,25 +8,30 @@ import {
 	AlertCircle,
 	Info,
 	AlertTriangle,
+	Undo2,
 } from "lucide-react";
 import { usePresignedImageUpload } from "./logic";
 import Image from "next/image";
+import { ImageInfo } from "@/models/image";
 
 type UploadController = ReturnType<typeof usePresignedImageUpload>;
 
 // ⭐️ Smart drag & drop uploader component with theme-aware styling
 // Connects to presigned URLs and manages concurrent uploads (default 3 at a time)
 // Responsive design with support for pending, uploading, success, and error states
+// Can optionally display existing images with delete capability (for update/edit mode)
 export const SmartImageInput = ({
 	uploader,
 	name,
 	label,
 	disabled = false,
+	existingImages = [],
 }: {
 	uploader: UploadController;
 	name: string;
 	label?: string;
 	disabled?: boolean;
+	existingImages?: ImageInfo[];
 }) => {
 	const { files, addFiles, removeFile } = uploader;
 	const [isDragging, setIsDragging] = useState(false);
@@ -71,9 +76,9 @@ export const SmartImageInput = ({
 			<div className="flex justify-between items-end gap-2">
 				<label className="text-sm font-semibold text-secondary-foreground/70 flex items-center gap-2">
 					{label}
-					{disabled && (
+					{/* {disabled && (
 						<span className="text-xs text-muted-foreground">(disabled)</span>
-					)}
+					)} */}
 				</label>
 				<span className="hidden mobile:block text-xs text-muted-foreground text-right">
 					รองรับ JPG, PNG, GIF, WEBP (Max 10MB)
@@ -85,6 +90,89 @@ export const SmartImageInput = ({
 					<Info className="w-4 h-4 text-muted-foreground" />
 				</div>
 			</div>
+
+			{/* ⭐️ Display existing images section if provided (for update/edit mode) */}
+			{existingImages && existingImages.length > 0 && (
+				<div className="space-y-3">
+					<label className="text-sm font-semibold text-secondary-foreground/70">
+						Existing Images
+					</label>
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+						{existingImages.map((image: ImageInfo) => {
+							const isDeleted = uploader.isImageMarkedForDeletion(image.url);
+
+							return (
+								<div
+									key={image.url}
+									className={`
+										group relative flex flex-col p-3 rounded-md border transition-all duration-200
+										${
+											isDeleted
+												? "border-destructive/50 bg-destructive/5 dark:bg-destructive/10 opacity-60"
+												: "border-emerald-500/30 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20"
+										}
+									`}
+								>
+									<div className="flex gap-3">
+										{/* Image preview */}
+										<div className="relative w-16 h-16 shrink-0 bg-muted rounded overflow-hidden border border-border">
+											<Image
+												fill
+												src={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${image.url}`}
+												alt="existing image"
+												unoptimized={process.env.NODE_ENV === "development"}
+												className="w-full h-full object-cover"
+											/>
+										</div>
+
+										<div className="flex-1 min-w-0 flex flex-col justify-between">
+											<div>
+												<p className="text-xs sm:text-sm font-medium text-foreground truncate">
+													{image.url.split("/").pop()}
+												</p>
+											</div>
+
+											<div className="flex items-center gap-1.5">
+												{isDeleted ? (
+													<span className="text-xs md:text-[clamp(0.625rem,0.5rem+0.5vw,0.75rem)] font-medium text-destructive flex items-center gap-0.5">
+														❌ Marked for deletion
+													</span>
+												) : (
+													<span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5">
+														✓ Keep
+													</span>
+												)}
+											</div>
+										</div>
+									</div>
+
+									{/* Toggle delete button */}
+									<button
+										type="button"
+										onClick={() => {
+											uploader.toggleDeleteImage(image.url);
+										}}
+										disabled={disabled}
+										className={`
+											absolute -top-2 -right-2 p-1.5 rounded-full transition-all duration-200 border border-border
+											${
+												isDeleted
+													? "bg-emerald-50 dark:bg-emerald-950/20 hover:bg-destructive/10 hover:border-destructive/50 text-emerald-600 hover:text-destructive"
+													: "bg-card dark:bg-muted hover:bg-destructive/10 hover:border-destructive/50 text-muted-foreground hover:text-destructive"
+											}
+											${disabled ? "opacity-50 cursor-not-allowed" : ""}
+										`}
+										title={isDeleted ? "Undo delete" : "Mark for deletion"}
+									>
+										<X className={`w-4 h-4 ${isDeleted ? "hidden" : ""}`} />
+										<Undo2 className={`w-4 h-4 ${isDeleted ? "" : "hidden"}`} />
+									</button>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
 
 			{files
 				.filter((f) => f.status === "success")
@@ -182,6 +270,7 @@ export const SmartImageInput = ({
 										fill
 										src={file.preview}
 										alt="preview"
+										unoptimized={process.env.NODE_ENV === "development"}
 										className="w-full h-full object-cover"
 									/>
 									{file.status === "uploading" && (

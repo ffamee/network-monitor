@@ -236,16 +236,19 @@ export const DrawingManager = ({
 				// }
 			});
 		});
+
+		// console.log("unmounting Terra Draw...");
+
 		return () => {
 			// Cleanup เช็คก่อน stop
 			console.log("Cleaning up Terra Draw...");
+			google.maps.event.removeListener(listener);
 			hasInitialPaths.current = true;
 			if (drawRef.current) {
 				console.log("Stopping Terra Draw...");
 				drawRef.current.stop();
 				drawRef.current = null;
 			}
-			google.maps.event.removeListener(listener);
 		};
 	}, [map, onPathsChange]);
 

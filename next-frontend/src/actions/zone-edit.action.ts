@@ -48,6 +48,90 @@ const ZoneSchema = z.object({
 			.pipe(z.record(z.string(), z.any()))
 			.optional(),
 	),
+	// validate images to be an array of objects with filename string property
+	images: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "images ต้องไม่ว่างเปล่า" })
+			.transform((str, ctx) => {
+				try {
+					const parsed = JSON.parse(str);
+					if (!Array.isArray(parsed)) {
+						throw new Error("Not an array");
+					}
+					return parsed;
+				} catch (_e) {
+					ctx.addIssue({
+						code: "custom",
+						message: "รูปแบบ images ไม่ถูกต้อง (Invalid images format)",
+					});
+					return z.NEVER;
+				}
+			})
+			.pipe(
+				z.array(
+					z.object({
+						filename: z.string().min(1, {
+							message: "filename ต้องไม่ว่างเปล่า",
+						}),
+					}),
+				),
+			)
+			.optional(),
+	),
+	deletedImages: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "images ต้องไม่ว่างเปล่า" })
+			.transform((str, ctx) => {
+				try {
+					const parsed = JSON.parse(str);
+					if (!Array.isArray(parsed)) {
+						throw new Error("Not an array");
+					}
+					return parsed;
+				} catch (_e) {
+					ctx.addIssue({
+						code: "custom",
+						message: "รูปแบบ images ไม่ถูกต้อง (Invalid images format)",
+					});
+					return z.NEVER;
+				}
+			})
+			.pipe(
+				z.array(
+					z.object({
+						filename: z.string().min(1, {
+							message: "filename ต้องไม่ว่างเปล่า",
+						}),
+					}),
+				),
+			)
+			.optional(),
+	),
+	// validate hasErrorFiles to be a string "true" or "false" (invalid data if it "true")
+	hasErrorFiles: z.preprocess(
+		emptyString,
+		z.enum(["true", "false"]).transform((str, ctx) => {
+			try {
+				if (str === "true") throw new Error("ตรวจสอบไฟล์ที่อัปโหลดอีกครั้ง");
+				return false;
+			} catch (error) {
+				ctx.addIssue({
+					code: "custom",
+					message:
+						error instanceof Error
+							? error.message
+							: "Invalid hasErrorFiles value",
+				});
+				return z.NEVER;
+			}
+		}),
+	),
 });
 
 export type State = {
@@ -55,6 +139,7 @@ export type State = {
 		name?: string[];
 		description?: string[];
 		geojson?: string[];
+		hasErrorFiles?: string[];
 	};
 	message?: string | null;
 	inputs?: { [key: string]: FormDataEntryValue };
@@ -68,6 +153,7 @@ export async function editZone(
 ): Promise<State> {
 	// 1. Validate Form Data
 	const rawData = Object.fromEntries(formData);
+	console.log("rawData:", rawData);
 	const validatedFields = ZoneSchema.safeParse(rawData);
 
 	// console.log("validatedFields:", validatedFields);
