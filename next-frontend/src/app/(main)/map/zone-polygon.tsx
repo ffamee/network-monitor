@@ -68,6 +68,14 @@ const getBoundsFromGeoJson = (geometry: GeoJSON.Geometry) => {
 		}
 	};
 
+	if (geometry.type !== "MultiPolygon") {
+		console.warn(
+			"Unsupported geometry type for bounds calculation:",
+			geometry.type,
+		);
+		return bounds;
+	}
+
 	for (const coords of geometry.coordinates) {
 		console.log("Processing coordinates:", coords);
 		processCoords(
