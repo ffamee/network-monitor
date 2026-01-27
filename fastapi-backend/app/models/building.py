@@ -17,7 +17,8 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.models.image import ImageCreate, ImageDelete, ImageRead
 
 if TYPE_CHECKING:
-	from app.models.image import BuildingImage
+	from .image import BuildingImage
+	from .zone import Zone
 
 
 # Shared properties
@@ -40,7 +41,7 @@ class BuildingCreate(BuildingBase):
 	lat: Latitude
 	lng: Longitude
 	images: list["ImageCreate"] | None = Field(default=None)
-	# zone_id: int
+	zone_id: int
 
 
 # Properties to receive via API on update
@@ -60,11 +61,13 @@ class Building(BuildingBase, table=True):
 	images: list["BuildingImage"] | None = Relationship(
 		back_populates="building", cascade_delete=True
 	)
+	zone_id: int = Field(foreign_key="zone.id", index=True, ondelete="CASCADE")
+	zone: "Zone" = Relationship(back_populates="buildings")
 
 
 class BuildingRead(BuildingBase):
 	id: int
-	google_place_id: str | None = Field(default=None)
+	google_place_id: str | None = Field(default=None, alias="googlePlaceId")
 	lat: Latitude | None = Field(default=None, validation_alias="location")
 	lng: Longitude | None = Field(default=None, validation_alias="location")
 
@@ -88,3 +91,16 @@ class BuildingRead(BuildingBase):
 		return f"{self.id}-{slugify(self.name)}"
 
 	images: list["ImageRead"] | None = Field(default=None)
+
+
+class BuildingCreateRead(BuildingRead):
+	# zone_slug: str = Field(default=None, alias="zoneSlug")
+
+	# @field_validator("zone_slug", mode="before", check_fields=False)
+	@computed_field
+	@property
+	def zone_slug(self) -> str | None:
+		# if hasattr(v, "slug"):
+		# 	return v.slug
+		# return None
+		return "slug-zone"

@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
-from app.models.building import Building, BuildingCreate
+from app.models.building import Building, BuildingCreate, BuildingUpdate
+from app.models.image import BuildingImage
+from app.services.storage import StorageService
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +22,15 @@ async def get_all_building(*, session: AsyncSession) -> Sequence[Building]:
 	return buildings
 
 
+async def get_building(*, session: AsyncSession, building_id: int) -> Building | None:
+	building = await session.get(
+		Building, building_id, options=[selectinload(Building.images)]
+	)
+	return building
+
+
 async def create_building(
-	*, session: AsyncSession, building_in: BuildingCreate
+	*, session: AsyncSession, storage: StorageService, building_in: BuildingCreate
 ) -> Building:
 	try:
 		point = Point(building_in.lng, building_in.lat)
@@ -41,6 +50,93 @@ async def create_building(
 		google_place_id=building_in.google_place_id,
 		location=geometry_wkt,
 	)
+	session.add(building)
+
+	# commit to get building ID
+	await session.flush()
+
+	# handle images if any
+	if building_in.images:
+		for image in building_in.images:
+			try:
+				image_url = await storage.upload_file(f"buildings/{building.id}", image)
+				building_image = BuildingImage(url=image_url, building_id=building.id)
+				session.add(building_image)
+			except Exception as e:
+				logger.error(f"Error creating building image: {str(e)}")
+				raise HTTPException(
+					status_code=500, detail="Failed to upload building image"
+				)
+
+	await session.commit()
+	# await session.refresh(building, attribute_names=["images", "zone"])
+	await session.refresh(building, attribute_names=["images"])
+	# zone = await session.get(Zone, 10)
+	return building
+
+
+async def update_building(
+	*,
+	session: AsyncSession,
+	storage: StorageService,
+	building_id: int,
+	building_update: BuildingUpdate,
+) -> Building:
+	building = await session.get(
+		Building, building_id, options=[selectinload(Building.images)]
+	)
+	if not building:
+		raise HTTPException(status_code=404, detail="Building not found")
+
+	try:
+		point = Point(building_update.lng, building_update.lat)
+		geometry_wkt = from_shape(point, srid=4326)
+	except Exception as e:
+		raise HTTPException(
+			status_code=400, detail=f"Failed to parse coordinates: {str(e)}"
+		)
+
+	# update building fields
+	building.name = building_update.name
+	building.floor = building_update.floor
+	building.admin = building_update.admin
+	building.tel = building_update.tel
+	building.address = building_update.address
+	building.google_place_id = building_update.google_place_id
+	building.location = geometry_wkt
+
+	# handle new images
+	if building_update.images:
+		for image in building_update.images:
+			try:
+				image_url = await storage.upload_file(f"buildings/{building.id}", image)
+				building_image = BuildingImage(url=image_url, building_id=building.id)
+				session.add(building_image)
+			except Exception as e:
+				logger.error(f"Error creating building image: {str(e)}")
+				raise HTTPException(
+					status_code=500, detail="Failed to upload building image"
+				)
+
+	# handle deleted images
+	if building_update.deleted_images:
+		images_to_delete = [
+			img
+			for img in building.images
+			if any(
+				image_del.filename == img.url
+				for image_del in building_update.deleted_images
+			)
+		]
+		for img in images_to_delete:
+			try:
+				storage.delete_file_by_url(img.url)
+				await session.delete(img)
+			except Exception as e:
+				logger.error(f"Error deleting building image: {str(e)}")
+				raise HTTPException(
+					status_code=500, detail="Failed to delete building image"
+				)
 
 	session.add(building)
 	await session.commit()

@@ -10,6 +10,7 @@ from sqlmodel import Column, Field, Relationship, SQLModel
 from app.models.image import ImageCreate, ImageDelete, ImageRead
 
 if TYPE_CHECKING:
+	from .building import Building
 	from .image import ZoneImage
 
 
@@ -44,6 +45,9 @@ class Zone(ZoneBase, table=True):
 		sa_column=Column(Geometry("MULTIPOLYGON", srid=4326)),
 	)
 	images: list["ZoneImage"] | None = Relationship(
+		back_populates="zone", cascade_delete=True
+	)
+	buildings: list["Building"] | None = Relationship(
 		back_populates="zone", cascade_delete=True
 	)
 	# building_id: list[int] | None = Field(default=None, foreign_key="building.id")
