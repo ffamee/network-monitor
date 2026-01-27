@@ -7,6 +7,7 @@ from sqlmodel import TIMESTAMP, Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
 	from .building import Building
+	from .probe import Probe
 	from .zone import Zone
 
 
@@ -61,3 +62,13 @@ class BuildingImage(ImageBase, table=True):
 	id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 	building_id: int = Field(foreign_key="building.id", index=True, ondelete="CASCADE")
 	building: "Building" = Relationship(back_populates="images")
+
+
+# Database table model for ProbeImage
+class ProbeImage(ImageBase, table=True):
+	__tablename__ = "probe_images"
+
+	id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+	probe_id: int = Field(foreign_key="probe.id", index=True, ondelete="CASCADE")
+	probe: "Probe" = Relationship(back_populates="images")
+

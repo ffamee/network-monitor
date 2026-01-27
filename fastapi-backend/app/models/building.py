@@ -19,6 +19,7 @@ from app.models.shared import ObjectRelation
 
 if TYPE_CHECKING:
 	from .image import BuildingImage
+	from .probe import Probe
 	from .zone import Zone
 
 
@@ -37,7 +38,7 @@ class BuildingBase(SQLModel):
 # Properties to receive via API on creation
 class BuildingCreate(BuildingBase):
 	google_place_id: str | None = Field(
-		default=None, index=True, unique=True, validation_alias="googlePlaceId"
+		default=None, index=True, validation_alias="placeId"
 	)
 	lat: Latitude
 	lng: Longitude
@@ -55,7 +56,7 @@ class BuildingUpdate(BuildingCreate):
 # Database table model
 class Building(BuildingBase, table=True):
 	id: int | None = Field(default=None, primary_key=True)
-	google_place_id: str | None = Field(default=None, index=True, unique=True)
+	google_place_id: str | None = Field(default=None, index=True)
 	location: Any = Field(
 		sa_column=Column(Geometry("POINT", srid=4326)),
 	)
@@ -64,11 +65,16 @@ class Building(BuildingBase, table=True):
 	)
 	zone_id: int = Field(foreign_key="zone.id", index=True, ondelete="CASCADE")
 	zone: "Zone" = Relationship(back_populates="buildings")
+	probes: list["Probe"] | None = Relationship(
+		back_populates="building", cascade_delete=True
+	)
 
 
 class BuildingRead(BuildingBase):
 	id: int
-	google_place_id: str | None = Field(default=None, alias="googlePlaceId")
+	google_place_id: str | None = Field(
+		default=None, serialization_alias="googlePlaceId"
+	)
 	lat: Latitude | None = Field(default=None, validation_alias="location")
 	lng: Longitude | None = Field(default=None, validation_alias="location")
 

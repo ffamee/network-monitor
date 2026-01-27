@@ -23,3 +23,6 @@ env/
 # 6. OS Files
 .DS_Store
 Thumbs.db
+
+# planning / AI guide
+plan/

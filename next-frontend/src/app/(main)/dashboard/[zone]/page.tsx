@@ -1,7 +1,5 @@
-import { Building, LaptopMinimal, LayoutGrid, Pencil } from "lucide-react";
+import { Building, LaptopMinimal, Pencil } from "lucide-react";
 import Link from "next/link";
-import BuildingCard from "./building-card";
-import AddButton from "./add-button";
 import { ZoneNav } from "./zone-nav";
 import { getIdFromSlug } from "@/lib/slug";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
