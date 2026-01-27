@@ -8,6 +8,7 @@ import { Building } from "@/models/building";
 import { SmartImageInput } from "@/components/presigned-image/upload-box";
 import { usePresignedImageUpload } from "@/components/presigned-image/logic";
 import { Slug } from "@/models/slug";
+import FormSelect from "@/components/select/form-select";
 
 interface BuildingEditFormProps {
 	buildingId: string;
@@ -15,6 +16,7 @@ interface BuildingEditFormProps {
 	location: LocationInfo | null;
 	displayMode?: "full" | "modal";
 	fetchPlace?: () => Promise<void>;
+	zones: { id: number; name: string }[];
 }
 
 export function BuildingEditForm({
@@ -22,6 +24,7 @@ export function BuildingEditForm({
 	building,
 	location,
 	displayMode = "full",
+	zones,
 	fetchPlace,
 }: BuildingEditFormProps) {
 	// ⭐️ STEP 1: Initialize the uploader hook for managing file uploads AND deletions
@@ -58,9 +61,6 @@ export function BuildingEditForm({
 		formData.append("images", JSON.stringify(newImages));
 		formData.append("deletedImages", JSON.stringify(deletedImages));
 		formData.append("hasErrorFiles", upload.hasErrorFiles() ? "true" : "false");
-
-		// Append building zone relation field
-		formData.append("zoneId", building.zone.id.toString());
 
 		// Manually invoke the server action with combined FormData
 		startTransition(() => {
@@ -268,6 +268,23 @@ export function BuildingEditForm({
 								{state.errors.tel.join(", ")}
 							</p>
 						)}
+					</div>
+
+					{/* ZoneId input (Dropdown zone namelist) */}
+					<div>
+						<label
+							htmlFor="zoneId"
+							className="block text-sm font-medium mb-2 text-secondary-foreground/70"
+						>
+							Zone
+						</label>
+						<FormSelect
+							name="zoneId"
+							defaultValue={
+								state?.inputs?.zoneId?.toString() ?? building.zone.id.toString()
+							}
+							dataList={zones}
+						/>
 					</div>
 
 					{/* ⭐️ STEP 6: Image component handles both existing images display + new uploads */}

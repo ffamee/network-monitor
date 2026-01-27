@@ -11,11 +11,13 @@ import { Slug } from "@/models/slug";
 interface EditBuildingPageProps {
 	buildingId: string;
 	building: Building & { zone: Slug };
+	zones: { id: number; name: string }[];
 }
 
 export default function EditBuildingComponentPage({
 	buildingId,
 	building,
+	zones,
 }: EditBuildingPageProps) {
 	const [location, setLocation] = useState<LocationInfo>({
 		lat: building.lat,
@@ -38,7 +40,9 @@ export default function EditBuildingComponentPage({
 		<div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
 			<EditBuildingMap onLocationSelect={setLocation} ref={mapRef} />
 			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
-				<BuildingEditForm {...{ buildingId, building, location, fetchPlace }} />
+				<BuildingEditForm
+					{...{ buildingId, building, location, fetchPlace, zones }}
+				/>
 			</div>
 		</div>
 	);

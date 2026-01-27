@@ -1,7 +1,36 @@
 import { BuildingEditForm } from "@/app/(action)/edit/building/[slug]/edit-building-form";
 import { Modal } from "@/components/modal/modal";
 import { getIdFromSlug } from "@/lib/slug";
-import { Building } from "@/models/building";
+
+async function getBuildingData(buildingId: string) {
+	const res = await fetch(
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}/for-update`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+			credentials: "include",
+		},
+	);
+	if (!res.ok) throw new Error("Network response was not ok");
+	const building = await res.json();
+	return building;
+}
+
+async function getZonesList() {
+	const res = await fetch(
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/summary`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+			credentials: "include",
+		},
+	);
+	if (!res.ok) throw new Error("Network response was not ok");
+	const zones = await res.json();
+	return zones;
+}
 
 export default async function EditBuildingModal({
 	params,
@@ -12,19 +41,10 @@ export default async function EditBuildingModal({
 	const buildingId = getIdFromSlug(slug);
 	if (!buildingId || isNaN(Number(buildingId)))
 		throw new Error("Invalid building slug");
-	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}/for-update`,
-		{
-			headers: {
-				"Content-Type": "application/json",
-			},
-			credentials: "include",
-		},
-	);
-	if (!res.ok) {
-		throw new Error("Failed to fetch building data");
-	}
-	const building = await res.json();
+	const [building, zones] = await Promise.all([
+		getBuildingData(buildingId),
+		getZonesList(),
+	]);
 
 	return (
 		<Modal>
@@ -39,6 +59,7 @@ export default async function EditBuildingModal({
 						lng: building.lng,
 						...(building.address && { address: building.address }),
 					},
+					zones,
 				}}
 			/>
 		</Modal>
