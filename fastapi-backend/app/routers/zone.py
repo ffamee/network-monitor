@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.crud import zone as crud_zone
 from app.dependencies import SessionDep, StorageDep
-from app.models.zone import Zone, ZoneCreate, ZoneRead, ZoneUpdate
+from app.models.zone import Zone, ZoneCreate, ZoneRead, ZoneReadSummary, ZoneUpdate
 
 router = APIRouter(
 	prefix="/zone",
@@ -16,6 +16,16 @@ router = APIRouter(
 async def get_all_zone(session: SessionDep) -> Sequence[Zone]:
 	# return all zones from database
 	return await crud_zone.get_all_zone(session=session)
+
+
+@router.get(
+	"/summary",
+	response_model=list[ZoneReadSummary],
+	# response_model_include={"__all__": {"id", "name"}},
+)
+async def get_zones_summary(session: SessionDep) -> Sequence[Zone]:
+	# return all zones from database
+	return await crud_zone.get_all_zone_summary(session=session)
 
 
 @router.get("/{zone_id}", response_model=ZoneRead)

@@ -92,3 +92,8 @@ class ZoneRead(ZoneBase):
 		return f"{self.id}-{slugify(self.name)}"
 
 	images: list["ImageRead"] | None = Field(default=None)
+
+
+class ZoneReadSummary(SQLModel):
+	id: int
+	name: str
