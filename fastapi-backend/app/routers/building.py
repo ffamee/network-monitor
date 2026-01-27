@@ -8,6 +8,7 @@ from app.models.building import (
 	Building,
 	BuildingCreate,
 	BuildingRead,
+	BuildingReadRelation,
 	BuildingUpdate,
 )
 
@@ -34,22 +35,36 @@ async def get_building(session: SessionDep, building_id: int) -> Building | None
 	return building
 
 
-@router.post("", response_model=BuildingRead)
+@router.get("/{building_id}/for-update", response_model=BuildingReadRelation)
+async def get_building_for_update(
+	session: SessionDep, building_id: int
+) -> Building | None:
+	# Retrieve specific building data for update
+	building = await crud_building.get_building_for_update(
+		session=session, building_id=building_id
+	)
+	if not building:
+		raise HTTPException(status_code=404, detail="Building not found")
+	return building
+
+
+@router.post("", response_model=BuildingReadRelation)
 async def create_building(
 	session: SessionDep, storage: StorageDep, building_in: BuildingCreate
 ) -> Building:
+	# Create a new building entry
 	return await crud_building.create_building(
 		session=session, storage=storage, building_in=building_in
 	)
 
 
-@router.put("/{building_id}", response_model=BuildingRead)
+@router.put("/{building_id}", response_model=BuildingReadRelation)
 async def update_building(
 	session: SessionDep,
 	storage: StorageDep,
 	building_id: int,
 	updated_data: BuildingUpdate,
-) -> dict[str, str]:
+) -> Building:
 	# Update building data
 	return await crud_building.update_building(
 		session=session,

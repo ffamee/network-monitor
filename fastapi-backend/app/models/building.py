@@ -15,6 +15,7 @@ from sqlalchemy import Column
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.image import ImageCreate, ImageDelete, ImageRead
+from app.models.zone import Zone, ZoneRelation
 
 if TYPE_CHECKING:
 	from .image import BuildingImage
@@ -41,7 +42,7 @@ class BuildingCreate(BuildingBase):
 	lat: Latitude
 	lng: Longitude
 	images: list["ImageCreate"] | None = Field(default=None)
-	zone_id: int
+	zone_id: int = Field(validation_alias="zoneId")
 
 
 # Properties to receive via API on update
@@ -93,14 +94,5 @@ class BuildingRead(BuildingBase):
 	images: list["ImageRead"] | None = Field(default=None)
 
 
-class BuildingCreateRead(BuildingRead):
-	# zone_slug: str = Field(default=None, alias="zoneSlug")
-
-	# @field_validator("zone_slug", mode="before", check_fields=False)
-	@computed_field
-	@property
-	def zone_slug(self) -> str | None:
-		# if hasattr(v, "slug"):
-		# 	return v.slug
-		# return None
-		return "slug-zone"
+class BuildingReadRelation(BuildingRead):
+	zone: ZoneRelation

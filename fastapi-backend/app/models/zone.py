@@ -53,6 +53,17 @@ class Zone(ZoneBase, table=True):
 	# building_id: list[int] | None = Field(default=None, foreign_key="building.id")
 
 
+class ZoneRelation(SQLModel):
+	id: int
+	name: str = Field(exclude=True)
+
+	@computed_field
+	@property
+	def slug(self) -> str:
+		"""Generate a URL-friendly slug from the zone id and name."""
+		return f"{self.id}-{slugify(self.name)}"
+
+
 # Properties to return via API
 class ZoneRead(ZoneBase):
 	id: int

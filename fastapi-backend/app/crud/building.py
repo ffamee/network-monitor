@@ -10,6 +10,7 @@ from sqlmodel import select
 
 from app.models.building import Building, BuildingCreate, BuildingUpdate
 from app.models.image import BuildingImage
+from app.models.zone import Zone
 from app.services.storage import StorageService
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,17 @@ async def get_building(*, session: AsyncSession, building_id: int) -> Building |
 	return building
 
 
+async def get_building_for_update(
+	*, session: AsyncSession, building_id: int
+) -> Building | None:
+	building = await session.get(
+		Building,
+		building_id,
+		options=[selectinload(Building.images), selectinload(Building.zone)],
+	)
+	return building
+
+
 async def create_building(
 	*, session: AsyncSession, storage: StorageService, building_in: BuildingCreate
 ) -> Building:
@@ -40,6 +52,11 @@ async def create_building(
 			status_code=400, detail=f"Failed to parse coordinates: {str(e)}"
 		)
 
+	# check zone existence
+	zone = await session.get(Zone, building_in.zone_id)
+	if not zone:
+		raise HTTPException(status_code=404, detail="Zone not found")
+
 	# create building
 	building = Building(
 		name=building_in.name,
@@ -49,6 +66,7 @@ async def create_building(
 		address=building_in.address,
 		google_place_id=building_in.google_place_id,
 		location=geometry_wkt,
+		zone_id=building_in.zone_id,
 	)
 	session.add(building)
 
@@ -69,9 +87,7 @@ async def create_building(
 				)
 
 	await session.commit()
-	# await session.refresh(building, attribute_names=["images", "zone"])
-	await session.refresh(building, attribute_names=["images"])
-	# zone = await session.get(Zone, 10)
+	await session.refresh(building, attribute_names=["images", "zone"])
 	return building
 
 
@@ -83,7 +99,9 @@ async def update_building(
 	building_update: BuildingUpdate,
 ) -> Building:
 	building = await session.get(
-		Building, building_id, options=[selectinload(Building.images)]
+		Building,
+		building_id,
+		options=[selectinload(Building.images), selectinload(Building.zone)],
 	)
 	if not building:
 		raise HTTPException(status_code=404, detail="Building not found")
@@ -104,6 +122,13 @@ async def update_building(
 	building.address = building_update.address
 	building.google_place_id = building_update.google_place_id
 	building.location = geometry_wkt
+
+	if building.zone_id != building_update.zone_id:
+		# check zone existence
+		zone = await session.get(Zone, building_update.zone_id)
+		if not zone:
+			raise HTTPException(status_code=404, detail="Zone not found")
+		building.zone_id = building_update.zone_id
 
 	# handle new images
 	if building_update.images:
@@ -140,5 +165,5 @@ async def update_building(
 
 	session.add(building)
 	await session.commit()
-	await session.refresh(building, attribute_names=["images"])
+	await session.refresh(building, attribute_names=["images", "zone"])
 	return building
