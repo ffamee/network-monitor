@@ -6,8 +6,8 @@ type Zone = {
 	description?: string;
 	color: string;
 	geojson: GeoJSON.Geometry | null;
-	images: ImageInfo[];
 	slug: string;
+	images: ImageInfo[];
 	// buildings: Building[];
 };
 

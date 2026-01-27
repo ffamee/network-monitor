@@ -4,28 +4,12 @@ import { Zone } from "@/models/zone";
 import { ZoneEditForm } from "./edit-zone-form";
 import EditZoneMap from "./edit-zone-map";
 import { useEffect, useState } from "react";
+import { formatFeatureCollections } from "@/lib/formatter";
 
 interface EditZonePageProps {
 	zone: Zone;
 	zoneId: string;
 }
-
-const formatFeatureCollections = (geojson: GeoJSON.Geometry) => {
-	if (geojson.type !== "MultiPolygon") {
-		return "";
-	}
-	return {
-		type: "FeatureCollection",
-		features: geojson.coordinates.map((polygon) => ({
-			type: "Feature",
-			properties: { mode: "polygon", selected: false },
-			geometry: {
-				type: "Polygon",
-				coordinates: polygon,
-			},
-		})),
-	};
-};
 
 export default function EditZoneComponentPage({
 	zone,
@@ -52,7 +36,7 @@ export default function EditZoneComponentPage({
 				onPathsChange={setPaths}
 				onColorChange={setColor}
 			/>
-			<div className="py-4 md:py-0 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
+			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
 				<ZoneEditForm {...{ zone, paths, color, zoneId }} />
 			</div>
 		</div>

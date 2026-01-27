@@ -42,7 +42,7 @@ export default function AddBuildingPage({
 		<div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
 			<AddProbeMap onLocationSelect={setLocation} ref={mapRef} />
 			{/* {location && <pre>{JSON.stringify(location, null, 2)}</pre>} */}
-			<div className="py-4 md:py-0 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
+			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
 				<ProbeAddForm {...{ buildingId: slug, location, fetchPlace }} />
 			</div>
 		</div>

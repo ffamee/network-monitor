@@ -67,6 +67,95 @@ const BuildingSchema = z.object({
 			.min(1, { message: "Address ต้องไม่ว่างเปล่า" })
 			.optional(),
 	),
+	zoneId: z.preprocess(
+		emptyNumber,
+		z
+			.int({ message: "ชั้นต้องเป็นเลขจำนวนเต็ม" })
+			.min(0, { message: "ชั้นต้องมากกว่าเท่ากับ 0" }),
+	),
+	images: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "images ต้องไม่ว่างเปล่า" })
+			.transform((str, ctx) => {
+				try {
+					const parsed = JSON.parse(str);
+					if (!Array.isArray(parsed)) {
+						throw new Error("Not an array");
+					}
+					return parsed;
+				} catch (_e) {
+					ctx.addIssue({
+						code: "custom",
+						message: "รูปแบบ images ไม่ถูกต้อง (Invalid images format)",
+					});
+					return z.NEVER;
+				}
+			})
+			.pipe(
+				z.array(
+					z.object({
+						filename: z.string().min(1, {
+							message: "filename ต้องไม่ว่างเปล่า",
+						}),
+					}),
+				),
+			)
+			.optional(),
+	),
+	deletedImages: z.preprocess(
+		emptyString,
+		z
+			.string()
+			.trim()
+			.min(1, { message: "images ต้องไม่ว่างเปล่า" })
+			.transform((str, ctx) => {
+				try {
+					const parsed = JSON.parse(str);
+					if (!Array.isArray(parsed)) {
+						throw new Error("Not an array");
+					}
+					return parsed;
+				} catch (_e) {
+					ctx.addIssue({
+						code: "custom",
+						message: "รูปแบบ images ไม่ถูกต้อง (Invalid images format)",
+					});
+					return z.NEVER;
+				}
+			})
+			.pipe(
+				z.array(
+					z.object({
+						filename: z.string().min(1, {
+							message: "filename ต้องไม่ว่างเปล่า",
+						}),
+					}),
+				),
+			)
+			.optional(),
+	),
+	// validate hasErrorFiles to be a string "true" or "false" (invalid data if it "true")
+	hasErrorFiles: z.preprocess(
+		emptyString,
+		z.enum(["true", "false"]).transform((str, ctx) => {
+			try {
+				if (str === "true") throw new Error("ตรวจสอบไฟล์ที่อัปโหลดอีกครั้ง");
+				return false;
+			} catch (error) {
+				ctx.addIssue({
+					code: "custom",
+					message:
+						error instanceof Error
+							? error.message
+							: "Invalid hasErrorFiles value",
+				});
+				return z.NEVER;
+			}
+		}),
+	),
 });
 
 export type State = {
@@ -77,6 +166,7 @@ export type State = {
 		tel?: string[];
 		lat?: string[];
 		lng?: string[];
+		hasErrorFiles?: string[];
 	};
 	message?: string | null;
 	inputs?: { [key: string]: FormDataEntryValue };
@@ -107,8 +197,8 @@ export async function editBuilding(
 
 	// 3. Update Database
 	let newSlug: { zone: string; building: string } = {
-		zone: "zone-a",
-		building: buildingId,
+		zone: "",
+		building: "",
 	};
 	try {
 		console.log(
@@ -131,8 +221,8 @@ export async function editBuilding(
 		}
 		const data = await res.json();
 		newSlug = {
-			zone: data.zoneId ?? "zone-a",
-			building: data.buildingId ?? buildingId,
+			zone: data.zone.slug,
+			building: data.slug,
 		};
 		// await db.building.update({ where: { id: buildingId }, data: ... })
 	} catch (error) {

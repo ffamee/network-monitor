@@ -16,7 +16,7 @@ export default function AddZonePage() {
 				geojson={geojson}
 				setGeojson={setGeojson}
 			/>
-			<div className="py-4 md:py-0 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
+			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
 				<ZoneAddForm {...{ color, geojson }} />
 			</div>
 		</div>

@@ -8,7 +8,7 @@ export default function MainIcon() {
 	const path = usePathname();
 	const pathSegments = path.split("/");
 	const goBack = pathSegments.length > 2;
-	const destination = goBack ? `${pathSegments.slice(0, -1).join("/")}` : "/";
+	const destination = goBack ? "." : "/";
 
 	return (
 		<Link

@@ -1,63 +1,3 @@
-// --- Types ---
-
-interface BuildingInfo {
-	name: string;
-	address: string;
-	admin: string;
-	tel: string;
-	floor: number;
-	totalProbes: number;
-	images: string[];
-}
-
-const healthMetrics = [
-	{
-		id: 1,
-		label: "Core Network",
-		percent: 98,
-		status: "Healthy",
-		icon: "server",
-		color: "text-emerald-500",
-		bg: "bg-emerald-500/10",
-	},
-	{
-		id: 2,
-		label: "Wi-Fi Coverage",
-		percent: 85,
-		status: "Good",
-		icon: "wifi",
-		color: "text-blue-500",
-		bg: "bg-blue-500/10",
-	},
-	{
-		id: 3,
-		label: "CCTV Storage",
-		percent: 62,
-		status: "Warning",
-		icon: "hard-drive",
-		color: "text-amber-500",
-		bg: "bg-amber-500/10",
-	},
-	{
-		id: 4,
-		label: "UPS Load",
-		percent: 45,
-		status: "Stable",
-		icon: "zap",
-		color: "text-purple-500",
-		bg: "bg-purple-500/10",
-	},
-	{
-		id: 5,
-		label: "IP Cameras",
-		percent: 92,
-		status: "Active",
-		icon: "video",
-		color: "text-emerald-500",
-		bg: "bg-emerald-500/10",
-	},
-];
-
 import { Suspense } from "react";
 import { TrendingUp, Map as MapIcon, Image as ImageIcon } from "lucide-react";
 import { BuildingImageCarousel } from "./image-carousel";
@@ -66,12 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { TrafficSplitBar } from "./traffic-bar";
-import { BuildingStatusCarousel } from "./status-carousel";
 import { UpTimeCard } from "./uptime-card";
 import { AlertCard } from "./alert-card";
 import { InfoCard } from "./info-card";
 import GoogleMap from "@/components/gl-map/google-map";
 import { ProbeTable } from "./probe-table";
+import { getIdFromSlug } from "@/lib/slug";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
+import { Building } from "@/models/building";
+import BuildingMapMarker from "./building-map-marker";
 // const GoogleMap = dynamic(() => import("@/components/gl-map/google-map"), {
 // 	ssr: false,
 // 	loading: () => (
@@ -84,6 +27,8 @@ import { ProbeTable } from "./probe-table";
 // });
 
 // --- Components ---
+
+// --- Types ---
 
 async function getBuildingData(buildingId: string) {
 	const res = await fetch(
@@ -100,21 +45,36 @@ async function getBuildingData(buildingId: string) {
 		throw new Error("Failed to fetch building data");
 	}
 	const data = await res.json();
-	return data as BuildingInfo;
+	return data;
 }
 
 export default async function BuildingPage({
 	params,
 }: {
-	params: Promise<{ building: string }>;
+	params: Promise<{ zone: string; building: string }>;
 }) {
-	const { building } = await params;
-	const buildingData = await getBuildingData(building);
+	const { zone, building } = await params;
+
+	const buildingId = getIdFromSlug(building);
+	if (!buildingId || isNaN(Number(buildingId))) notFound();
+	const buildingData: Building = await getBuildingData(buildingId);
+
+	if (!buildingData) notFound();
+	if (buildingData.slug !== building) {
+		if (process.env.NODE_ENV === "development") {
+			redirect(`${buildingData.slug}`);
+		} else {
+			permanentRedirect(`${buildingData.slug}`);
+		}
+	}
+
+	console.log("buildingData:", buildingData);
 	return (
 		<div className="min-h-full h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
 			{/* Main Content (Bento Grid) */}
 			<main className="pt-24 pb-12 px-4 max-w-screen flex flex-col space-y-4">
 				<div className="grid grid-cols-1 md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_1fr] gap-4 auto-rows-[minmax(160px,auto)]">
+					{/* Image and Map */}
 					<div className="md:row-span-2 w-full flex justify-center items-center h-full">
 						<Tabs
 							defaultValue="image"
@@ -150,7 +110,11 @@ export default async function BuildingPage({
 							{/* Content Area */}
 							<div className="w-full h-full *:h-full *:w-full p-2 flex items-center justify-center">
 								<TabsContent value="image">
-									<BuildingImageCarousel {...buildingData} />
+									<BuildingImageCarousel
+										images={buildingData.images}
+										name={buildingData.name}
+										address={buildingData.address}
+									/>
 								</TabsContent>
 								<TabsContent value="map">
 									<Suspense
@@ -167,15 +131,31 @@ export default async function BuildingPage({
 												props: {
 													className: "aspect-square",
 													clickableIcons: true,
+													defaultCenter: {
+														lat: buildingData.lat,
+														lng: buildingData.lng,
+													},
+													defaultZoom: 18,
 												},
 											}}
-										/>
+										>
+											<BuildingMapMarker
+												position={{
+													lat: buildingData.lat,
+													lng: buildingData.lng,
+												}}
+											/>
+										</GoogleMap>
 									</Suspense>
 								</TabsContent>
 							</div>
 						</Tabs>
 					</div>
-					<InfoCard {...buildingData} slug={building} />
+
+					{/* Building Information Card */}
+					<InfoCard building={buildingData} slug={building} zoneSlug={zone} />
+
+					{/* 4. Uptime & Alert Cards */}
 					<div className="grid grid-cols-2 lg:grid-rows-2 gap-4 h-full">
 						<Suspense
 							fallback={
@@ -192,8 +172,10 @@ export default async function BuildingPage({
 							<AlertCard />
 						</Suspense>
 					</div>
-					<div className="h-full md:col-span-2 grid grid-cols-3 gap-4">
-						<Card className="ring-foreground/20 shadow-md h-auto rounded-4xl col-span-2">
+
+					{/* 5. Traffic Ratio */}
+					<div className="h-full md:col-span-2">
+						<Card className="ring-foreground/20 shadow-md h-full rounded-4xl col-span-2">
 							<CardHeader>
 								<CardTitle>
 									<div className="flex items-center gap-3">
@@ -212,17 +194,10 @@ export default async function BuildingPage({
 								</Suspense>
 							</CardContent>
 						</Card>
-						<div
-							className="w-full h-full shadow-md
-						ring-foreground/20 bg-card text-card-foreground gap-4 rounded-4xl text-xs/relaxed ring-1 flex flex-col"
-						>
-							<Suspense fallback={<Skeleton className="h-full rounded-4xl" />}>
-								<BuildingStatusCarousel data={healthMetrics} />
-							</Suspense>
-						</div>
 					</div>
 				</div>
-				{/* 7. Probe Table (Span 12 cols) - Row 3 */}
+
+				{/* 6. Probe Table */}
 				<ProbeTable building={building} />
 			</main>
 		</div>

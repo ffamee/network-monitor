@@ -8,15 +8,16 @@ import {
 	CarouselPrevious,
 	type CarouselApi,
 } from "@/components/ui/carousel";
+import { ImageInfo } from "@/models/image";
 import Autoplay from "embla-carousel-autoplay";
 import { MapPin } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 interface BuildingCarouselProps {
-	images: string[];
+	images: ImageInfo[];
 	name: string;
-	address: string;
+	address: string | undefined;
 }
 
 export function BuildingImageCarousel(props: BuildingCarouselProps) {
@@ -66,10 +67,11 @@ export function BuildingImageCarousel(props: BuildingCarouselProps) {
 								<CardContent className="flex aspect-square items-center justify-center">
 									<Image
 										loading="eager"
-										src={img}
+										src={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${img.url}`}
 										alt={`Slide ${index}`}
 										width={500}
 										height={500}
+										unoptimized={process.env.NODE_ENV === "development"}
 										className="w-full h-full object-cover rounded-lg mask-b-from-50% text-white"
 									/>
 								</CardContent>
@@ -96,7 +98,7 @@ export function BuildingImageCarousel(props: BuildingCarouselProps) {
 					{props.name}
 				</div>
 				<div className="flex items-center gap-2 text-slate-200 text-sm drop-shadow-lg">
-					<MapPin size={14} />
+					{props.address && <MapPin size={14} />}
 					<div className="w-full truncate">{props.address}</div>
 				</div>
 			</div>

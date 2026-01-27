@@ -11,11 +11,11 @@ export const TrafficSplitBar = () => {
 			setDownload((prev) =>
 				Math.max(
 					100,
-					Math.min(1000, prev + Math.floor(Math.random() * 100) - 50)
-				)
+					Math.min(1000, prev + Math.floor(Math.random() * 100) - 50),
+				),
 			);
 			setUpload((prev) =>
-				Math.max(50, Math.min(600, prev + Math.floor(Math.random() * 80) - 40))
+				Math.max(50, Math.min(600, prev + Math.floor(Math.random() * 80) - 40)),
 			);
 		}, 2000);
 		return () => clearInterval(interval);

@@ -64,7 +64,7 @@ export function ZoneAddForm({ color, geojson }: ZoneAddFormProps) {
 			{/* onSubmit={handleFormSubmit} gets file data from uploader before calling server action */}
 			<form
 				onSubmit={handleFormSubmit}
-				className="text-sm text-black dark:text-white"
+				className="text-sm text-black dark:text-white max-h-[75dvh] overflow-y-auto no-scrollbar"
 				ref={formRef}
 			>
 				<fieldset

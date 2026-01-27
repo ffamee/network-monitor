@@ -5,30 +5,22 @@ import EditBuildingMap from "./edit-building-map";
 import { BuildingEditForm } from "./edit-building-form";
 import { PlaceHandler } from "@/components/gl-map/map-place";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
+import { Building } from "@/models/building";
+import { Slug } from "@/models/slug";
 
 interface EditBuildingPageProps {
-	slug: string;
-	building: {
-		name: string;
-		lat: number;
-		lng: number;
-		placeId: string | null;
-		address: string;
-		floor?: number;
-		admin?: string;
-		tel?: string;
-		// other building properties...
-	};
+	buildingId: string;
+	building: Building & { zone: Slug };
 }
 
 export default function EditBuildingComponentPage({
-	slug,
+	buildingId,
 	building,
 }: EditBuildingPageProps) {
 	const [location, setLocation] = useState<LocationInfo>({
 		lat: building.lat,
 		lng: building.lng,
-		...(building.placeId && { placeId: building.placeId }),
+		...(building.googlePlaceId && { placeId: building.googlePlaceId }),
 		...(building.address && { address: building.address }),
 	});
 	const mapRef = useRef<PlaceHandler>(null);
@@ -45,8 +37,8 @@ export default function EditBuildingComponentPage({
 	return (
 		<div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
 			<EditBuildingMap onLocationSelect={setLocation} ref={mapRef} />
-			<div className="py-4 md:py-0 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
-				<BuildingEditForm {...{ slug, building, location, fetchPlace }} />
+			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
+				<BuildingEditForm {...{ buildingId, building, location, fetchPlace }} />
 			</div>
 		</div>
 	);

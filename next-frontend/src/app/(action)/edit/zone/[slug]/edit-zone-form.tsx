@@ -82,7 +82,7 @@ export function ZoneEditForm({
 			{/* onSubmit={handleFormSubmit} gets file data from uploader before calling server action */}
 			<form
 				onSubmit={handleFormSubmit}
-				className="text-sm text-black dark:text-white"
+				className="text-sm text-black dark:text-white max-h-[75dvh] overflow-y-auto no-scrollbar"
 				ref={formRef}
 			>
 				<fieldset
@@ -169,11 +169,11 @@ export function ZoneEditForm({
 					</div>
 
 					{/* Hidden Error Message */}
-					{state?.errors?.geojson && (
+					{/* {state?.errors?.geojson && (
 						<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
 							{state.errors.geojson.join(", ")}
 						</p>
-					)}
+					)} */}
 
 					{/* Global Error Message */}
 					{state?.message && (

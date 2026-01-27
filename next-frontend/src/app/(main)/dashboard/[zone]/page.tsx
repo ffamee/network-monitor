@@ -109,9 +109,9 @@ export default async function ZonePage({
 	if (!zoneData) notFound();
 	if (zoneData.slug !== zone) {
 		if (process.env.NODE_ENV === "development") {
-			redirect(`/dashboard/${zoneData.slug}`);
+			redirect(`${zoneData.slug}`);
 		} else {
-			permanentRedirect(`/dashboard/${zoneData.slug}`);
+			permanentRedirect(`${zoneData.slug}`);
 		}
 	}
 

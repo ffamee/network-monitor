@@ -83,7 +83,7 @@ export default async function ProbePage({
 										<Link
 											href={`/edit/probe/${probe}`}
 											title="แก้ไขข้อมูลอุปกรณ์"
-											className="cursor-pointer text-white/50 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
+											className="cursor-pointer text-foreground/50 hover:text-primary/75 transition-colors text-[clamp(1rem,4vw,1.25rem)]"
 										>
 											<Pencil
 												data-testid="edit-zone-info-trigger"

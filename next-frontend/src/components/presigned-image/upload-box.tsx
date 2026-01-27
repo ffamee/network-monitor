@@ -72,7 +72,7 @@ export const SmartImageInput = ({
 	);
 
 	return (
-		<div className="w-full space-y-3">
+		<div className="w-full space-y-3" data-testid="smart-image-input">
 			<div className="flex justify-between items-end gap-2">
 				<label className="text-sm font-semibold text-secondary-foreground/70 flex items-center gap-2">
 					{label}
@@ -97,7 +97,7 @@ export const SmartImageInput = ({
 					<label className="text-sm font-semibold text-secondary-foreground/70">
 						Existing Images
 					</label>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2 max-h-32 overflow-y-auto">
 						{existingImages.map((image: ImageInfo) => {
 							const isDeleted = uploader.isImageMarkedForDeletion(image.url);
 
@@ -239,7 +239,7 @@ export const SmartImageInput = ({
 			</div>
 
 			{files.length > 0 && (
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
 					{files.map((file) => (
 						<div
 							key={file.id}

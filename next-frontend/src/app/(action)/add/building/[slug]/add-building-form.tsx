@@ -1,34 +1,47 @@
 "use client";
 
 import { addBuilding } from "@/actions/building-add.action";
-import { useActionState } from "react";
+import { SmartImageInput } from "@/components/presigned-image/upload-box";
+import { usePresignedImageUpload } from "@/components/presigned-image/logic";
+import { startTransition, useActionState, useRef } from "react";
 import { LocationInfo } from "./page";
 import { RotateCcw } from "lucide-react";
 
 export function BuildingAddForm({
-	zone,
+	zoneId,
 	location,
 	fetchPlace,
 }: {
-	zone: string;
+	zoneId: string;
 	location: LocationInfo | null;
 	fetchPlace: () => Promise<void>;
 }) {
+	// Manage presigned uploads and keep progress/errors in sync with the form
+	const upload = usePresignedImageUpload(3);
+	const formRef = useRef<HTMLFormElement | null>(null);
 	// ⭐️ KEY POINT: สร้าง version ของ action ที่มี id ฝังอยู่แล้ว
-	const addBuildingWithId = addBuilding.bind(null, zone);
+	const addBuildingWithId = addBuilding.bind(null, zoneId);
 	// ส่ง bound action เข้าไปใน hook
 	const [state, formAction, isPending] = useActionState(
 		addBuildingWithId,
 		null,
 	);
 
-	// function cleanAddress(address: string): string {
-	// 	// Regex นี้เช็คว่า ขึ้นต้นด้วยรหัส Plus Code (4+ตัวอักษร) ตามด้วยเครื่องหมาย + ตามด้วยอักษร
-	// 	// แล้วตัดส่วนหน้าทิ้งไป
-	// 	return address.replace(/^[A-Z0-9]{4}\+[A-Z0-9]{2,}\s*,?\s*/, "");
-	// }
+	// Custom submit to merge uploaded file data with regular fields
+	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
 
-	// const rename = cleanAddress(location?.address || "");
+		const uploadedFiles = upload.getSubmitPayload();
+		const form = e.currentTarget;
+		const formData = new FormData(form);
+
+		formData.append("images", JSON.stringify(uploadedFiles));
+		formData.append("hasErrorFiles", upload.hasErrorFiles() ? "true" : "false");
+
+		startTransition(() => {
+			formAction(formData);
+		});
+	};
 
 	return (
 		<div
@@ -38,7 +51,11 @@ export function BuildingAddForm({
 			<div className="text-[clamp(0.5rem,3vw,1.5rem)] text-secondary-foreground/90 font-semibold">
 				Add New Building
 			</div>
-			<form action={formAction} className="text-sm text-black dark:text-white">
+			<form
+				onSubmit={handleFormSubmit}
+				className="text-sm text-black dark:text-white max-h-[75dvh] overflow-y-auto no-scrollbar"
+				ref={formRef}
+			>
 				<fieldset
 					className="space-y-4 w-full transition-opacity
 										disabled:[&_input]:cursor-progress disabled:[&_input]:opacity-50
@@ -225,6 +242,15 @@ export function BuildingAddForm({
 								{state.errors.tel.join(", ")}
 							</p>
 						)}
+					</div>
+
+					<div>
+						<SmartImageInput
+							disabled={isPending}
+							uploader={upload}
+							name="building_images"
+							label="Building Images"
+						/>
 					</div>
 
 					{/* Global Error Message */}

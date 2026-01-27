@@ -29,9 +29,16 @@ const iconMap: { [key: string]: React.ReactNode } = {
 	video: <Video />,
 };
 
+/**
+ * BuildingStatusCarousel Component
+ * Displays a carousel of building status metrics.
+ *
+ * @deprecated This component is currently not in use.
+ */
+
 export function BuildingStatusCarousel(props: BuildingStatusCarouselProps) {
 	const plugins = useRef(
-		Autoplay({ delay: 3000, stopOnMouseEnter: true, stopOnInteraction: false })
+		Autoplay({ delay: 3000, stopOnMouseEnter: true, stopOnInteraction: false }),
 	);
 	const [api, setApi] = useState<CarouselApi>();
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -76,8 +83,8 @@ export function BuildingStatusCarousel(props: BuildingStatusCarouselProps) {
 												metric.percent > 90
 													? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
 													: metric.percent > 70
-													? "bg-blue-500/10 text-blue-500 border-blue-500/20"
-													: "bg-amber-500/10 text-amber-500 border-amber-500/20"
+														? "bg-blue-500/10 text-blue-500 border-blue-500/20"
+														: "bg-amber-500/10 text-amber-500 border-amber-500/20"
 											}`}
 										>
 											{metric.status}
@@ -103,8 +110,8 @@ export function BuildingStatusCarousel(props: BuildingStatusCarouselProps) {
 													metric.percent > 90
 														? "bg-emerald-500"
 														: metric.percent > 70
-														? "bg-blue-500"
-														: "bg-amber-500"
+															? "bg-blue-500"
+															: "bg-amber-500"
 												}`}
 												style={{ width: `${metric.percent}%` }}
 											></div>

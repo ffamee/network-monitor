@@ -1,32 +1,72 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState, useRef } from "react";
 import { editBuilding } from "@/actions/building-edit.action";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
 import { RotateCcw } from "lucide-react";
+import { Building } from "@/models/building";
+import { SmartImageInput } from "@/components/presigned-image/upload-box";
+import { usePresignedImageUpload } from "@/components/presigned-image/logic";
+import { Slug } from "@/models/slug";
+
+interface BuildingEditFormProps {
+	buildingId: string;
+	building: Building & { zone: Slug };
+	location: LocationInfo | null;
+	displayMode?: "full" | "modal";
+	fetchPlace?: () => Promise<void>;
+}
 
 export function BuildingEditForm({
-	slug,
+	buildingId,
 	building,
 	location,
 	displayMode = "full",
 	fetchPlace,
-}: {
-	slug: string;
-	building: { name?: string; floor?: number; admin?: string; tel?: string };
-	location: LocationInfo | null;
-	displayMode?: "full" | "modal";
-	fetchPlace?: () => Promise<void>;
-}) {
-	// ⭐️ KEY POINT: สร้าง version ของ action ที่มี id ฝังอยู่แล้ว
-	// null ตัวแรกคือ context (this) ซึ่งใน server action เราไม่ใช้
-	const editBuildingWithId = editBuilding.bind(null, slug);
+}: BuildingEditFormProps) {
+	// ⭐️ STEP 1: Initialize the uploader hook for managing file uploads AND deletions
+	const upload = usePresignedImageUpload(3);
 
-	// ส่ง bound action เข้าไปใน hook
+	// ⭐️ STEP 2: Create a version of the action with building id bound
+	// null ตัวแรกคือ context (this) ซึ่งใน server action เราไม่ใช้
+	const editBuildingWithId = editBuilding.bind(null, buildingId);
+
+	// ⭐️ STEP 3: Get the server action state from useActionState hook
 	const [state, formAction, isPending] = useActionState(
 		editBuildingWithId,
 		null,
 	);
+
+	// ⭐️ STEP 4: Create a reference to access the form element in handleSubmit
+	const formRef = useRef<HTMLFormElement | null>(null);
+
+	// ⭐️ STEP 5: Custom form handler that bridges client-side file data + server action
+	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		// Get successful new file uploads
+		const newImages = upload.getSubmitPayload();
+
+		// Get deleted images from hook
+		const deletedImages = upload.getDeletedImages();
+
+		// Get all form fields
+		const form = e.currentTarget;
+		const formData = new FormData(form);
+
+		// Append file data to FormData
+		formData.append("images", JSON.stringify(newImages));
+		formData.append("deletedImages", JSON.stringify(deletedImages));
+		formData.append("hasErrorFiles", upload.hasErrorFiles() ? "true" : "false");
+
+		// Append building zone relation field
+		formData.append("zoneId", building.zone.id.toString());
+
+		// Manually invoke the server action with combined FormData
+		startTransition(() => {
+			formAction(formData);
+		});
+	};
 
 	return (
 		<div
@@ -36,7 +76,11 @@ export function BuildingEditForm({
 			<div className="text-[clamp(0.5rem,3vw,1.5rem)] text-secondary-foreground/90 font-semibold">
 				Edit Building Information
 			</div>
-			<form action={formAction} className="text-sm text-black dark:text-white">
+			<form
+				onSubmit={handleFormSubmit}
+				className="text-sm text-black dark:text-white max-h-[75dvh] overflow-y-auto no-scrollbar"
+				ref={formRef}
+			>
 				<fieldset
 					className="space-y-4 w-full transition-opacity
 										disabled:[&_input]:cursor-progress disabled:[&_input]:opacity-50
@@ -222,6 +266,22 @@ export function BuildingEditForm({
 						{state?.errors?.tel && (
 							<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
 								{state.errors.tel.join(", ")}
+							</p>
+						)}
+					</div>
+
+					{/* ⭐️ STEP 6: Image component handles both existing images display + new uploads */}
+					<div>
+						<SmartImageInput
+							disabled={isPending}
+							uploader={upload}
+							name="building_images"
+							label="Building Images"
+							existingImages={building.images || []}
+						/>
+						{state?.errors?.hasErrorFiles && (
+							<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
+								{state.errors.hasErrorFiles.join(", ")}
 							</p>
 						)}
 					</div>

@@ -1,14 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil, Server } from "lucide-react";
-import Link from "next/link";
+import { Building } from "@/models/building";
+import { Server } from "lucide-react";
+import LinkClient from "./link-client";
 
 interface BuildingInfoCardProps {
-	name: string;
-	floor?: number;
-	totalProbes: number;
-	admin: string;
-	tel: string;
+	building: Building;
 	slug: string;
+	zoneSlug: string;
 }
 
 export const InfoCard = (props: BuildingInfoCardProps) => {
@@ -22,13 +20,7 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 						</div>
 						<div className="text-card-foreground font-semibold text-lg flex flex-row gap-2 justify-center items-center">
 							ข้อมูลอาคาร
-							<Link
-								href={`/edit/building/${props.slug}`}
-								title="แก้ไขข้อมูลอาคาร"
-								className="cursor-pointer text-card-foreground/50 hover:text-primary/75 transition-colors"
-							>
-								<Pencil size={16} data-testid="edit-building-info-trigger" />
-							</Link>
+							<LinkClient slug={props.slug} zoneSlug={props.zoneSlug} />
 						</div>
 					</div>
 				</CardTitle>
@@ -40,7 +32,7 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 							ชื่ออาคาร
 						</label>
 						<div className="flex items-center gap-2 text-[clamp(0.875rem,0.875rem,1.25rem)] text-black dark:text-white bg-secondary-foreground/5 p-2 rounded-lg">
-							{props.name}
+							{props.building.name}
 						</div>
 					</div>
 					<div className="bg-secondary p-3 rounded-2xl border border-ring hover:border-primary/75 hover:border-2 transition-colors">
@@ -48,7 +40,7 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 							จำนวนชั้นทั้งหมด
 						</label>
 						<div className="text-2xl font-bold text-secondary-foreground/75">
-							{props.floor ?? "-"}{" "}
+							{props.building.floor ?? "-"}{" "}
 							<span className="text-sm font-normal text-card-foreground/75">
 								ชั้น
 							</span>
@@ -59,7 +51,7 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 							อุปกรณ์ทั้งหมด
 						</label>
 						<div className="text-2xl font-bold text-primary/75">
-							{props.totalProbes}{" "}
+							{/* {props.building.totalProbes}{" "} */}0
 							<span className="text-sm font-normal text-card-foreground/75">
 								ตัว
 							</span>
@@ -70,10 +62,14 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 							ผู้ดูแลระบบ
 						</label>
 						<div className="flex items-center gap-2 text-sm text-black dark:text-white bg-secondary-foreground/5 p-2 rounded-lg">
-							<div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400"></div>
-							{props.admin}
-							{props.admin && props.tel && " - "}
-							{props.tel}
+							{props.building.admin || props.building.tel ? (
+								<div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400" />
+							) : (
+								<div className="w-2 h-2 rounded-full bg-stone-500 dark:bg-stone-400" />
+							)}
+							{props.building.admin}
+							{props.building.admin && props.building.tel && " - "}
+							{props.building.tel}
 						</div>
 					</div>
 				</div>

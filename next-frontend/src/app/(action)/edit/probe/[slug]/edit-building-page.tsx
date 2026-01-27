@@ -46,7 +46,7 @@ export default function EditBuildingComponentPage({
 	return (
 		<div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
 			<EditBuildingMap onLocationSelect={setLocation} ref={mapRef} />
-			<div className="py-4 md:py-0 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
+			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
 				<ProbeEditForm {...{ slug, probe, location, fetchPlace }} />
 			</div>
 		</div>
