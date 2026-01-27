@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
+from app.models.building import Building
 from app.models.image import ZoneImage
 from app.models.zone import Zone, ZoneCreate, ZoneUpdate
 from app.services.storage import StorageService
@@ -31,7 +32,14 @@ async def get_all_zone_summary(*, session: AsyncSession) -> Sequence[Zone]:
 
 
 async def get_zone(*, session: AsyncSession, zone_id: int) -> Zone | None:
-	zone = await session.get(Zone, zone_id, options=[selectinload(Zone.images)])
+	zone = await session.get(
+		Zone,
+		zone_id,
+		options=[
+			selectinload(Zone.images),
+			selectinload(Zone.buildings).options(selectinload(Building.images)),
+		],
+	)
 	return zone
 
 

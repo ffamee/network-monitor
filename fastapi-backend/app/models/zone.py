@@ -7,6 +7,7 @@ from shapely.geometry import mapping
 from slugify import slugify
 from sqlmodel import Column, Field, Relationship, SQLModel
 
+from app.models.building import BuildingRead
 from app.models.image import ImageCreate, ImageDelete, ImageRead
 
 if TYPE_CHECKING:
@@ -53,17 +54,6 @@ class Zone(ZoneBase, table=True):
 	# building_id: list[int] | None = Field(default=None, foreign_key="building.id")
 
 
-class ZoneRelation(SQLModel):
-	id: int
-	name: str = Field(exclude=True)
-
-	@computed_field
-	@property
-	def slug(self) -> str:
-		"""Generate a URL-friendly slug from the zone id and name."""
-		return f"{self.id}-{slugify(self.name)}"
-
-
 # Properties to return via API
 class ZoneRead(ZoneBase):
 	id: int
@@ -97,3 +87,7 @@ class ZoneRead(ZoneBase):
 class ZoneReadSummary(SQLModel):
 	id: int
 	name: str
+
+
+class ZoneReadBuilding(ZoneRead):
+	buildings: list["BuildingRead"]

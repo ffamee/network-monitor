@@ -15,7 +15,7 @@ from sqlalchemy import Column
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.image import ImageCreate, ImageDelete, ImageRead
-from app.models.zone import Zone, ZoneRelation
+from app.models.shared import ObjectRelation
 
 if TYPE_CHECKING:
 	from .image import BuildingImage
@@ -95,4 +95,4 @@ class BuildingRead(BuildingBase):
 
 
 class BuildingReadRelation(BuildingRead):
-	zone: ZoneRelation
+	zone: ObjectRelation
