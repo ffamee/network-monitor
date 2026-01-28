@@ -23,4 +23,11 @@ type ProbeDetail = Probe & {
 	updatedAt: Date;
 };
 
-export type { Probe, ProbeDetail };
+type ProbeWithStats = ProbeDetail & {
+	status: string;
+	latency: number;
+	uptime: number;
+	lastSeenAt: Date;
+};
+
+export type { Probe, ProbeDetail, ProbeWithStats };

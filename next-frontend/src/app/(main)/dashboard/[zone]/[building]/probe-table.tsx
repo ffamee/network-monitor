@@ -18,21 +18,13 @@ import {
 } from "@/components/ui/table";
 import { CheckCircle2, LaptopMinimal, Search } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddProbeButton from "./add-probe-button";
+import { ProbeWithStats } from "@/models/probe";
+import { set } from "zod";
+import { formatTimeAgo } from "@/lib/formatter";
 
-interface Probe {
-	id: string;
-	name: string;
-	location: string;
-	ip: string;
-	status: "online" | "offline" | "warning";
-	latency: number;
-	uptime: string;
-	lastCheck: string;
-}
-
-const initialProbes: Probe[] = [
+const initialProbes = [
 	{
 		id: "PB-001",
 		name: "Main Gateway - Fl.1",
@@ -185,30 +177,63 @@ const initialProbes: Probe[] = [
 	},
 ];
 
-export const ProbeTable = ({ building }: { building: string }) => {
+async function getProbesInBuilding(buildingId: string) {
+	// Fetch probes from API or database based on buildingId
+	const res = await fetch(
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}/probes`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+			credentials: "include",
+		},
+	);
+	if (!res.ok) {
+		throw new Error("Failed to fetch probes data");
+	}
+	const data = await res.json();
+	return data;
+}
+
+export const ProbeTable = ({
+	buildingId,
+	buildingSlug,
+}: {
+	buildingId: string;
+	buildingSlug: string;
+}) => {
 	const [searchTerm, setSearchTerm] = useState("");
+	const [probes, setProbes] = useState<ProbeWithStats[]>([]);
+
+	useEffect(() => {
+		const getProbesInBuilding = async (buildingId: string) => {
+			// Fetch probes from API or database based on buildingId
+			const res = await fetch(
+				`${process.env.NEXT_PUBLIC_BACKEND_URL}/probe/building/${buildingId}`,
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					credentials: "include",
+				},
+			);
+			if (!res.ok) {
+				throw new Error("Failed to fetch probes data");
+			}
+			const data = await res.json();
+			setProbes(data);
+		};
+
+		getProbesInBuilding(buildingId);
+	}, [buildingId]);
 	// const headerRef = useRef(null);
 	// const [headerRowWidth, setHeaderRowWidth] = useState<number>(0);
 
-	const filteredProbes = initialProbes.filter(
+	const filteredProbes = probes.filter(
 		(p) =>
 			p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			p.ip.includes(searchTerm),
+			(p.ipAddress && p.ipAddress.includes(searchTerm)),
 	);
-
-	// useEffect(() => {
-	// 	if (!headerRef.current) return;
-	// 	const observer = new ResizeObserver((entries) => {
-	// 		for (const entry of entries) {
-	// 			const height = entry.borderBoxSize[0]?.blockSize || 0;
-	// 			setHeaderRowWidth(height);
-	// 		}
-	// 	});
-
-	// 	observer.observe(headerRef.current);
-
-	// 	return () => observer.disconnect();
-	// }, []);
 
 	return (
 		<Card className="w-full ring-foreground/20 shadow-md h-auto rounded-4xl">
@@ -218,7 +243,7 @@ export const ProbeTable = ({ building }: { building: string }) => {
 					สถานะอุปกรณ์ (Probes Status)
 				</CardTitle>
 				<CardAction className="flex gap-4">
-					<AddProbeButton building={building} />
+					<AddProbeButton building={buildingId} />
 					<div className="relative">
 						<Search
 							className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -263,9 +288,9 @@ export const ProbeTable = ({ building }: { building: string }) => {
 							</TableRow>
 						</TableHeader>
 						<TableBody className="text-secondary-foreground/75 min-h-0 h-full">
-							{filteredProbes.map((probe) => (
+							{filteredProbes.map((probe, idx) => (
 								<TableRow
-									key={probe.id}
+									key={idx}
 									className={`border-b border-secondary-foreground/30 bg-card hover:bg-accent transition-colors group
 														has-checked:sticky has-checked:top-9.75 has-checked:border-none
 														has-checked:shadow-[inset_0_-1.5px_0_0_var(--destructive),inset_0_1.5px_0_0_var(--destructive)]/50
@@ -280,9 +305,7 @@ export const ProbeTable = ({ building }: { building: string }) => {
 									</TableCell>
 									<TableCell className="py-3 pl-2">
 										<Link
-											href={`${building}/${probe.id
-												.toLowerCase()
-												.replace(/ /g, "-")}`}
+											href={`${buildingSlug}/${probe.slug}`}
 											title={`ดูรายละเอียดของ ${probe.name}`}
 											className="flex items-center gap-3"
 										>
@@ -295,15 +318,17 @@ export const ProbeTable = ({ building }: { building: string }) => {
 											<div>
 												<div className="font-medium">{probe.name}</div>
 												<div className="text-xs text-secondary-foreground/50">
-													{probe.id}
+													Probe-{probe.id}
 												</div>
 											</div>
 										</Link>
 									</TableCell>
-									<TableCell className="py-3 font-mono">{probe.ip}</TableCell>
-									<TableCell className="py-3">{probe.location}</TableCell>
+									<TableCell className="py-3 font-mono">
+										{probe.ipAddress || "-"}
+									</TableCell>
+									<TableCell className="py-3">{probe.address || "-"}</TableCell>
 									<TableCell className="py-3">
-										<StatusBadge status={probe.status} />
+										<StatusBadge status={probe.status || "offline"} />
 									</TableCell>
 									<TableCell className="py-3 text-right">
 										<span
@@ -311,14 +336,16 @@ export const ProbeTable = ({ building }: { building: string }) => {
 												probe.latency > 100 ? "text-amber-500" : ""
 											}`}
 										>
-											{probe.latency} ms
+											{probe.latency || "0"} ms
 										</span>
 									</TableCell>
 									<TableCell className="py-3 text-right text-emerald-500 dark:text-emerald-400">
-										{probe.uptime}
+										{probe.uptime || "0"}%
 									</TableCell>
 									<TableCell className="py-3 pr-2 text-right">
-										{probe.lastCheck}
+										{formatTimeAgo(
+											new Date(probe.lastSeenAt || probe.updatedAt),
+										)}
 									</TableCell>
 								</TableRow>
 							))}

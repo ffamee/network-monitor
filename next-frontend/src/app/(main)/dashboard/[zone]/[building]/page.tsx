@@ -198,7 +198,7 @@ export default async function BuildingPage({
 				</div>
 
 				{/* 6. Probe Table */}
-				<ProbeTable building={building} />
+				<ProbeTable buildingId={buildingId} buildingSlug={building} />
 			</main>
 		</div>
 	);

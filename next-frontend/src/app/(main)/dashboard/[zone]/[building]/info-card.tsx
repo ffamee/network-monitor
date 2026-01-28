@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building } from "@/models/building";
-import { Server } from "lucide-react";
-import LinkClient from "./link-client";
+import { Pencil, Server } from "lucide-react";
+import Link from "next/link";
 
 interface BuildingInfoCardProps {
 	building: Building;
@@ -20,7 +20,13 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 						</div>
 						<div className="text-card-foreground font-semibold text-lg flex flex-row gap-2 justify-center items-center">
 							ข้อมูลอาคาร
-							<LinkClient slug={props.slug} zoneSlug={props.zoneSlug} />
+							<Link
+								href={`/edit/building/${props.slug}`}
+								title="แก้ไขข้อมูลอาคาร"
+								className="cursor-pointer text-card-foreground/50 hover:text-primary/75 transition-colors"
+							>
+								<Pencil size={16} data-testid="edit-building-info-trigger" />
+							</Link>
 						</div>
 					</div>
 				</CardTitle>
