@@ -9,6 +9,7 @@ from sqlmodel import Column, Field, Relationship, SQLModel
 
 from app.models.building import BuildingRead
 from app.models.image import ImageCreate, ImageDelete, ImageRead
+from app.models.probe import ProbeReadMap
 from app.models.shared import SummaryBase
 
 if TYPE_CHECKING:
@@ -95,3 +96,34 @@ class ZoneReadBuildingSummary(ZoneReadSummary):
 
 class ZoneReadBuilding(ZoneRead):
 	buildings: list["BuildingRead"]
+
+
+class ZoneReadMap(ZoneRead):
+	probes: list["ProbeReadMap"] = Field(validation_alias="buildings")
+
+	@field_validator("probes", mode="before", check_fields=False)
+	@classmethod
+	def extract_probes(cls, v: Any, info: "ValidationInfo") -> list["ProbeReadMap"]:
+		if isinstance(v, list):
+			probes_list = []
+			for building in v:
+				if hasattr(building, "probes") and building.probes:
+					for probe in building.probes:
+						probes_list.append(
+							ProbeReadMap(**probe.model_dump(), building=building)
+						)
+			return probes_list
+		raise ValueError("Invalid buildings data")
+
+	building_count: int = Field(
+		validation_alias="buildings", serialization_alias="buildingCount"
+	)
+
+	@field_validator("building_count", mode="before", check_fields=False)
+	@classmethod
+	def count_buildings(cls, v: Any, info: "ValidationInfo") -> int:
+		if v is None:
+			return 0
+		if isinstance(v, list):
+			return len(v)
+		raise ValueError("Invalid buildings data")

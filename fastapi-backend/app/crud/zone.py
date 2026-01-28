@@ -50,6 +50,28 @@ async def get_zone(*, session: AsyncSession, zone_id: int) -> Zone | None:
 	return zone
 
 
+async def get_zones_map_data(*, session: AsyncSession) -> Sequence[Zone]:
+	statement = select(Zone).options(
+		selectinload(Zone.images),
+		selectinload(Zone.buildings).options(selectinload(Building.probes)),
+	)
+	results = await session.execute(statement)
+	zones = results.scalars().all()
+	return zones
+
+
+async def get_zone_map_data(*, session: AsyncSession, zone_id: int) -> Zone | None:
+	zone = await session.get(
+		Zone,
+		zone_id,
+		options=[
+			selectinload(Zone.images),
+			selectinload(Zone.buildings).options(selectinload(Building.probes)),
+		],
+	)
+	return zone
+
+
 async def create_zone(
 	*, session: AsyncSession, storage: StorageService, zone_in: ZoneCreate
 ) -> Zone:

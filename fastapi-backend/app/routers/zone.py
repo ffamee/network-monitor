@@ -10,6 +10,7 @@ from app.models.zone import (
 	ZoneRead,
 	ZoneReadBuilding,
 	ZoneReadBuildingSummary,
+	ZoneReadMap,
 	ZoneReadSummary,
 	ZoneUpdate,
 )
@@ -45,6 +46,22 @@ async def get_zones_buildings_summary(session: SessionDep) -> Sequence[Zone]:
 	return await crud_zone.get_all_zone_buildings_summary(session=session)
 
 
+@router.get("/map", response_model=list[ZoneReadMap])
+async def get_zones_map(session: SessionDep) -> Sequence[Zone]:
+	# return all zones with building and probe counts for map display
+	return await crud_zone.get_zones_map_data(session=session)
+
+
+@router.get("/map/{zone_id}", response_model=ZoneReadMap)
+async def get_zone_map(session: SessionDep, zone_id: int) -> Zone:
+	# return zone with building and probe counts for map display
+	zone = await crud_zone.get_zone_map_data(session=session, zone_id=zone_id)
+
+	if not zone:
+		raise HTTPException(status_code=404, detail="Zone not found")
+	return zone
+
+
 @router.get("/{zone_id}", response_model=ZoneReadBuilding)
 async def get_zone(session: SessionDep, zone_id: int) -> Zone:
 	# return zone from zone_id
@@ -53,15 +70,6 @@ async def get_zone(session: SessionDep, zone_id: int) -> Zone:
 	if not zone:
 		raise HTTPException(status_code=404, detail="Zone not found")
 	return zone
-
-
-# 	return {
-# 		**result,
-# 		"images": images,
-# 		"totalBuildings": 8,
-# 		"totalProbes": len(result["locations"]),
-# 	}
-# return {"error": "Zone not found"}
 
 
 @router.post("", response_model=ZoneRead)

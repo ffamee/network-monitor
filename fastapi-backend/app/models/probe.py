@@ -162,3 +162,8 @@ class ProbeReadTable(ProbeRead):
 	ip_address: str | None = Field(default=None, serialization_alias="ipAddress")
 	created_at: datetime = Field(serialization_alias="createdAt")
 	updated_at: datetime = Field(serialization_alias="updatedAt")
+
+
+class ProbeReadMap(ProbeRead):
+	ip_address: str | None = Field(default=None, serialization_alias="ipAddress")
+	building: ObjectRelation
