@@ -11,9 +11,14 @@ import Lightbox from "./light-box";
 import ZonePolygon from "./zone-polygon";
 import { ImageInfo } from "@/models/image";
 import { Zone } from "@/models/zone";
+import { ProbeDetail } from "@/models/probe";
+import { Slug } from "@/models/slug";
+
+type ProbeMap = ProbeDetail & { building: Slug };
+export type ZoneMap = Zone & { buildingCount: number } & { probes: ProbeMap[] };
 
 export default function MapPage() {
-	const [zone, setZone] = useState<Zone[]>([]);
+	const [zone, setZone] = useState<ZoneMap[]>([]);
 	const [isPanelOpen, setIsPanelOpen] = useState(false);
 	const [visible, setVisible] = useState<{
 		[key: string]: { polygon: boolean; pin: boolean };
@@ -29,7 +34,7 @@ export default function MapPage() {
 	useEffect(() => {
 		const fetchZones = async () => {
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone`,
+				`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/map`,
 				{
 					headers: {
 						"Content-Type": "application/json",
@@ -44,7 +49,7 @@ export default function MapPage() {
 				data.reduce(
 					(
 						acc: { [key: string]: { polygon: boolean; pin: boolean } },
-						z: Zone,
+						z: ZoneMap,
 					) => {
 						acc[z.name] = { polygon: true, pin: false };
 						return acc;
@@ -55,6 +60,8 @@ export default function MapPage() {
 		};
 		fetchZones();
 	}, []);
+
+	// console.log("map data:", zone);
 
 	const toggleOpenPanel = () => {
 		setIsPanelOpen((prev) => !prev);
@@ -89,15 +96,20 @@ export default function MapPage() {
 	};
 
 	const filteredLocations = useMemo(() => {
-		// return zone.flatMap((z) => {
-		// 	const isPinVisible = visible[z.name]?.pin;
-		// 	return isPinVisible
-		// 		? z.locations.map((location) => ({ ...location, color: z.color }))
-		// 		: [];
-		// });
-		// }, [zone, visible]);
-		return [];
-	}, []);
+		return zone.flatMap((z) => {
+			const isPinVisible = visible[z.name]?.pin;
+			return isPinVisible
+				? z.probes.map((probe) => ({
+						key: `${z.slug}/${probe.building.slug}/${probe.slug}`,
+						location: {
+							lat: probe.lat,
+							lng: probe.lng,
+						},
+						color: z.color,
+					}))
+				: [];
+		});
+	}, [zone, visible]);
 
 	return (
 		<main className="w-full h-[calc(100%-4rem)] mt-16 overscroll-none">

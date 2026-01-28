@@ -21,81 +21,18 @@ import {
 import { useMediaQuery } from "usehooks-ts";
 import Image from "next/image";
 import Link from "next/link";
-import { Zone } from "@/models/zone";
 import { ImageInfo } from "@/models/image";
 import { getIdFromSlug } from "@/lib/slug";
+import { ZoneMap } from "./page";
 
 interface ZoneCardProps {
 	selectedZone: string | null;
 	setLightbox: (images: ImageInfo[], index: number) => void;
 }
 
-const locations = [
-	{
-		key: "zone-a-poi-1",
-		location: { lat: 13.84905181, lng: 100.56649934 },
-	},
-	{
-		key: "zone-a-poi-2",
-		location: { lat: 13.84909917, lng: 100.56706385 },
-	},
-	{
-		key: "zone-a-poi-3",
-		location: { lat: 13.85007482, lng: 100.56836345 },
-	},
-	{
-		key: "zone-a-poi-4",
-		location: { lat: 13.84835769, lng: 100.56952907 },
-	},
-	{
-		key: "zone-a-poi-5",
-		location: { lat: 13.84709586, lng: 100.56796151 },
-	},
-	{
-		key: "zone-a-poi-6",
-		location: { lat: 13.84781133, lng: 100.57100285 },
-	},
-	{
-		key: "zone-a-poi-7",
-		location: { lat: 13.84661454, lng: 100.56758637 },
-	},
-	{
-		key: "zone-a-poi-8",
-		location: { lat: 13.84627631, lng: 100.56792132 },
-	},
-	{
-		key: "zone-a-poi-9",
-		location: { lat: 13.84625036, lng: 100.56973004 },
-	},
-	{
-		key: "zone-a-poi-10",
-		location: { lat: 13.84511854, lng: 100.56880558 },
-	},
-	{
-		key: "zone-a-poi-11",
-		location: { lat: 13.84638038, lng: 100.56733181 },
-	},
-	{
-		key: "zone-a-poi-12",
-		location: { lat: 13.84674462, lng: 100.56510774 },
-	},
-	{
-		key: "zone-a-poi-13",
-		location: { lat: 13.84584703, lng: 100.57132448 },
-	},
-	{
-		key: "zone-a-poi-14",
-		location: { lat: 13.8447543, lng: 100.57115022 },
-	},
-	{
-		key: "zone-a-poi-15",
-		location: { lat: 13.84690073, lng: 100.5719541 },
-	},
-];
-
 export default function ZoneCard(props: ZoneCardProps) {
 	const [loading, setLoading] = useState(false);
-	const [zoneData, setZoneData] = useState<Zone | null>(null);
+	const [zoneData, setZoneData] = useState<ZoneMap | null>(null);
 	const [isCollapsed, setIsCollapsed] = useState(true);
 	const isMobile = useMediaQuery(`(max-width: 480px)`);
 	const snapPoints = [
@@ -118,7 +55,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 			setLoading(true);
 			try {
 				const response = await fetch(
-					`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/${zoneId}`,
+					`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/map/${zoneId}`,
 					{
 						headers: {
 							"Content-Type": "application/json",
@@ -279,7 +216,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 												</span>
 											</div>
 											<div className="text-lg font-semibold text-secondary-foreground/75">
-												{Math.round(locations.length / 3)}
+												{zoneData.buildingCount}
 												<span className="text-sm font-normal text-card-foreground/75 mx-2">
 													ชั้น
 												</span>
@@ -293,14 +230,11 @@ export default function ZoneCard(props: ZoneCardProps) {
 												</span>
 											</div>
 											<div className="text-lg font-semibold text-secondary-foreground/75">
-												{locations.length}
+												{zoneData.probes.length}
 												<span className="text-sm font-normal text-card-foreground/75 mx-2">
 													ตัว
 												</span>
 											</div>
-										</div>
-										<div className="col-span-2 bg-secondary p-3 rounded-lg border border-ring hover:border-primary/75 hover:border-2 transition-colors">
-											chart
 										</div>
 									</div>
 									<div className="">
@@ -312,28 +246,25 @@ export default function ZoneCard(props: ZoneCardProps) {
 											Attached Devices
 										</div>
 										<div className="grid gap-2">
-											{locations.map((loc, index) => {
-												const color = [
-													"bg-rose-400",
-													"bg-emerald-400",
-													"bg-amber-400",
-												][index % 3];
+											{zoneData.probes.map((probe, index) => {
 												return (
-													<div
-														key={loc.key}
+													<Link
+														target="_blank"
+														href={`/dashboard/${zoneData.slug}/${probe.building.slug}/${probe.slug}`}
+														key={index}
 														className="bg-muted rounded-lg p-2 text-sm text-secondary-foreground justify-between flex items-center border hover:border-ring
 														transition-colors cursor-pointer"
 													>
 														<div className="flex items-center gap-2">
 															<div
-																className={`size-2 ${color} shadow-2xl rounded-full`}
+																className={`size-2 bg-green-500 shadow-2xl rounded-full`}
 															/>
-															{loc.key}
+															{probe.name}
 														</div>
 														<div className="text-xs text-secondary-foreground/50">
-															192.168.1.1
+															{probe.ipAddress || "N/A"}
 														</div>
-													</div>
+													</Link>
 												);
 											})}
 										</div>
@@ -395,7 +326,7 @@ export default function ZoneCard(props: ZoneCardProps) {
 						<span className="text-xs text-card-foreground/75">จำนวนอาคาร</span>
 					</div>
 					<div className="text-lg font-semibold text-secondary-foreground/75">
-						{Math.round(locations.length / 3)}
+						{zoneData.buildingCount}
 						<span className="text-sm font-normal text-card-foreground/75 mx-2">
 							ชั้น
 						</span>
@@ -409,14 +340,11 @@ export default function ZoneCard(props: ZoneCardProps) {
 						</span>
 					</div>
 					<div className="text-lg font-semibold text-secondary-foreground/75">
-						{locations.length}
+						{zoneData.probes.length}
 						<span className="text-sm font-normal text-card-foreground/75 mx-2">
 							ตัว
 						</span>
 					</div>
-				</div>
-				<div className="col-span-2 bg-secondary p-3 rounded-lg border border-ring hover:border-primary/75 hover:border-2 transition-colors">
-					chart
 				</div>
 			</div>
 			<div className="hidden group-data-[state=expanded]:block px-4">
@@ -425,24 +353,25 @@ export default function ZoneCard(props: ZoneCardProps) {
 					Attached Devices
 				</div>
 				<div className="grid gap-2">
-					{locations.map((loc, index) => {
-						const color = ["bg-rose-400", "bg-emerald-400", "bg-amber-400"][
-							index % 3
-						];
+					{zoneData.probes.map((probe, index) => {
 						return (
-							<div
-								key={loc.key}
+							<Link
+								target="_blank"
+								href={`/dashboard/${zoneData.slug}/${probe.building.slug}/${probe.slug}`}
+								key={index}
 								className="bg-muted rounded-lg p-2 text-sm text-secondary-foreground justify-between flex items-center border hover:border-ring
 														transition-colors cursor-pointer"
 							>
 								<div className="flex items-center gap-2">
-									<div className={`size-2 ${color} shadow-2xl rounded-full`} />
-									{loc.key}
+									<div
+										className={`size-2 bg-green-500 shadow-2xl rounded-full`}
+									/>
+									{probe.name}
 								</div>
 								<div className="text-xs text-secondary-foreground/50">
-									192.168.1.1
+									{probe.ipAddress || "N/A"}
 								</div>
-							</div>
+							</Link>
 						);
 					})}
 				</div>
