@@ -13,13 +13,13 @@ interface FormSelectProps {
 	dataList: { id: number; name: string }[];
 }
 
-export default function FormSelect({
+export default function FormSelectZone({
 	name,
 	defaultValue,
 	dataList,
 }: FormSelectProps) {
 	return (
-		<Select name={name} defaultValue={defaultValue}>
+		<Select name={name} defaultValue={defaultValue} required>
 			<SelectTrigger id={name} className="w-full">
 				<SelectValue placeholder={`Select a ${name}`} />
 			</SelectTrigger>

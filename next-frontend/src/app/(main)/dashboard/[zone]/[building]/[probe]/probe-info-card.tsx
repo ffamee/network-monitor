@@ -1,16 +1,11 @@
+import { ProbeDetail } from "@/models/probe";
 import { Cpu } from "lucide-react";
 
-export default function ProbeInfoCard({
-	probe,
-}: {
-	probe: {
-		model: string;
-		serialNumber: string;
-		mac: string;
-		firmware: string;
-		installDate: string;
-	};
-}) {
+interface ProbeInfoCardProps {
+	probe: ProbeDetail;
+}
+
+export default function ProbeInfoCard({ probe }: ProbeInfoCardProps) {
 	return (
 		<div className="col-span-1 row-span-2 bg-card p-4 rounded-2xl border border-ring shadow-md">
 			<div className="text-[clamp(1rem,2vw,1.125rem)] font-semibold text-card-foreground flex items-center gap-2 mb-4">
@@ -19,12 +14,22 @@ export default function ProbeInfoCard({
 			</div>
 			<div className="space-y-4 mt-2">
 				{[
-					{ label: "Model", value: probe.model },
+					// { label: "Model", value: probe.model },
+					{ label: "Model", value: "B1 Pro" },
 					{ label: "Serial No.", value: probe.serialNumber },
-					{ label: "MAC Address", value: probe.mac },
-					{ label: "Firmware", value: probe.firmware },
-					{ label: "Installed", value: probe.installDate },
-					{ label: "Last Maintenance", value: "2 months ago" },
+					{ label: "MAC Address", value: probe.macAddress || "N/A" },
+					{
+						label: "Installed",
+						value: new Date(probe.createdAt).toLocaleDateString("en-CA", {
+							timeZone: "Asia/Bangkok",
+						}),
+					},
+					{
+						label: "Last Update",
+						value: new Date(probe.updatedAt).toLocaleDateString("en-CA", {
+							timeZone: "Asia/Bangkok",
+						}),
+					},
 				].map((item, i) => (
 					<div
 						key={i}

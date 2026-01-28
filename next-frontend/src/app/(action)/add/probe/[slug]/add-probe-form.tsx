@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
-import { LocationInfo } from "./page";
+import { startTransition, useActionState, useRef } from "react";
+import { LocationInfo } from "../../building/[slug]/page";
 import { RotateCcw } from "lucide-react";
 import { addProbe } from "@/actions/probe-add.action";
+import { SmartImageInput } from "@/components/presigned-image/upload-box";
+import { usePresignedImageUpload } from "@/components/presigned-image/logic";
 
 export function ProbeAddForm({
 	buildingId,
@@ -14,10 +16,29 @@ export function ProbeAddForm({
 	location: LocationInfo | null;
 	fetchPlace: () => Promise<void>;
 }) {
+	// Manage presigned uploads and keep progress/errors in sync with the form
+	const upload = usePresignedImageUpload(3);
+	const formRef = useRef<HTMLFormElement | null>(null);
 	// ⭐️ KEY POINT: สร้าง version ของ action ที่มี id ฝังอยู่แล้ว
 	const addProbeWithId = addProbe.bind(null, buildingId);
 	// ส่ง bound action เข้าไปใน hook
 	const [state, formAction, isPending] = useActionState(addProbeWithId, null);
+
+	// Custom submit to merge uploaded file data with regular fields
+	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		const uploadedFiles = upload.getSubmitPayload();
+		const form = e.currentTarget;
+		const formData = new FormData(form);
+
+		formData.append("images", JSON.stringify(uploadedFiles));
+		formData.append("hasErrorFiles", upload.hasErrorFiles() ? "true" : "false");
+
+		startTransition(() => {
+			formAction(formData);
+		});
+	};
 
 	// function cleanAddress(address: string): string {
 	// 	// Regex นี้เช็คว่า ขึ้นต้นด้วยรหัส Plus Code (4+ตัวอักษร) ตามด้วยเครื่องหมาย + ตามด้วยอักษร
@@ -33,9 +54,13 @@ export function ProbeAddForm({
 			data-testid="add-building-form"
 		>
 			<div className="text-[clamp(0.5rem,3vw,1.5rem)] text-secondary-foreground/90 font-semibold">
-				Add New Building
+				Add New Probe
 			</div>
-			<form action={formAction} className="text-sm text-black dark:text-white">
+			<form
+				onSubmit={handleFormSubmit}
+				className="text-sm text-black dark:text-white max-h-[75dvh] overflow-y-auto no-scrollbar"
+				ref={formRef}
+			>
 				<fieldset
 					className="space-y-4 w-full transition-opacity
 										disabled:[&_input]:cursor-progress disabled:[&_input]:opacity-50
@@ -202,26 +227,16 @@ export function ProbeAddForm({
 							</p>
 						)}
 					</div>
-					{/* IPv4 Input */}
 					<div>
-						<label
-							htmlFor="ip"
-							className="block text-sm font-medium mb-2 text-secondary-foreground/70"
-						>
-							IP Address
-						</label>
-						<input
-							id="ip"
-							name="ip"
-							placeholder="enter IP address"
-							data-error={state?.errors?.ip ? "true" : undefined}
-							defaultValue={state?.inputs?.ip?.toString() ?? undefined}
-							className="border p-2 w-full rounded focus:outline-none focus:border-primary/75 focus:border-2 placeholder:text-xs
-												data-[error=true]:border-rose-600 data-[error=true]:dark:border-rose-500"
+						<SmartImageInput
+							disabled={isPending}
+							uploader={upload}
+							name="probe_images"
+							label="Probe Images"
 						/>
-						{state?.errors?.ip && (
+						{state?.errors?.hasErrorFiles && (
 							<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
-								{state.errors.ip.join(", ")}
+								{state.errors.hasErrorFiles.join(", ")}
 							</p>
 						)}
 					</div>

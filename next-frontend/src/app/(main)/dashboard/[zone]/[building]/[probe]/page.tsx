@@ -16,25 +16,9 @@ import { StatusBadge } from "@/components/badge/status-badge";
 import LogCalendar from "./log-calendar";
 import { Suspense } from "react";
 import Link from "next/link";
-
-type Params = Promise<{ probe: string }>;
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-type ProbeInfo = {
-	id: string;
-	name: string;
-	status: "Online" | "Offline" | "Degraded";
-	ip: string;
-	location: string;
-	uptime: string;
-	cpuLoad: number;
-	memoryUsage: number;
-	temperature: number;
-	model: string;
-	serialNumber: string;
-	mac: string;
-	firmware: string;
-	installDate: string;
-};
+import { getIdFromSlug } from "@/lib/slug";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
+import { ProbeDetail } from "@/models/probe";
 
 async function getProbeData(probeId: string) {
 	const res = await fetch(
@@ -57,12 +41,26 @@ export default async function ProbePage({
 	params,
 	searchParams,
 }: {
-	params: Params;
-	searchParams: SearchParams;
+	params: Promise<{ probe: string }>;
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
 	const { probe } = await params;
+	const probeId = getIdFromSlug(probe);
+	if (!probeId || isNaN(Number(probeId))) notFound();
+	const probeData: ProbeDetail = await getProbeData(probeId);
+
+	if (!probeData) notFound();
+	if (probeData.slug !== probe) {
+		if (process.env.NODE_ENV === "development") {
+			redirect(`${probeData.slug}`);
+		} else {
+			permanentRedirect(`${probeData.slug}`);
+		}
+	}
+
 	const { date, page } = await searchParams;
-	const probeData: ProbeInfo = await getProbeData(probe);
+	console.log("Probe Data:", probeData);
+
 	return (
 		<div className="min-h-full h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
 			<main className="pt-24 pb-12 px-4 max-w-screen">
@@ -79,7 +77,8 @@ export default async function ProbePage({
 										<h2 className="text-[clamp(1rem,2vw,1.5rem)] font-bold text-card-foreground">
 											{probeData.name}
 										</h2>
-										<StatusBadge status={probeData.status} />
+										{/* <StatusBadge status={probeData.status} /> */}
+										<StatusBadge status={"online"} />
 										<Link
 											href={`/edit/probe/${probe}`}
 											title="แก้ไขข้อมูลอุปกรณ์"
@@ -93,13 +92,14 @@ export default async function ProbePage({
 									</div>
 									<div className="flex flex-wrap items-center gap-2 text-sm text-secondary-foreground/70">
 										<span className="flex items-center gap-1.5">
-											<Globe size={14} /> {probeData.ip}
+											<Globe size={14} /> {probeData.ipAddress || "N/A"}
 										</span>
 										<span className="flex items-center gap-1.5">
-											<MapPin size={14} /> {probeData.location}
+											<MapPin size={14} /> {probeData.address || "-"}
 										</span>
 										<span className="flex items-center gap-1.5">
-											<Clock size={14} /> {probeData.uptime}
+											{/* <Clock size={14} /> {probeData.uptime} */}
+											<Clock size={14} /> {"Uptime: N/A"}
 										</span>
 									</div>
 								</div>
@@ -117,48 +117,54 @@ export default async function ProbePage({
 					</div>
 
 					{/* Calendar Card */}
-					<LogCalendar probe={probe} />
+					<LogCalendar probe={probeId} />
 
 					{/* Performance Stats (Small Cards) */}
 					<div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-card p-4 rounded-2xl border border-ring shadow-md">
 						<div className="flex flex-col h-full justify-between p-4 w-full">
 							<div className="text-4xl font-bold text-card-foreground">
-								{probeData.cpuLoad}%
+								{/* {probeData.cpuLoad}% */}
+								{/* wait for influxdb data */}
+								50%
 							</div>
 							<div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mt-4">
 								<div
 									className="bg-blue-500 h-full rounded-full"
-									style={{ width: `${probeData.cpuLoad}%` }}
+									style={{ width: `50%` }}
 								></div>
 							</div>
 							<p className="text-xs text-slate-500 mt-2">Optimal range</p>
 						</div>
 						<div className="flex flex-col h-full justify-between p-4 w-full">
 							<div className="text-4xl font-bold text-card-foreground">
-								{probeData.memoryUsage}%
+								{/* {probeData.memoryUsage}% */}
+								{/* wait for influxdb data */}
+								65%
 							</div>
 							<div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mt-4">
 								<div
 									className="bg-purple-500 h-full rounded-full"
-									style={{ width: `${probeData.memoryUsage}%` }}
+									style={{ width: `62.5%` }}
 								></div>
 							</div>
-							<p className="text-xs text-slate-500 mt-2">4GB / 8GB Used</p>
+							<p className="text-xs text-slate-500 mt-2">5GB / 8GB Used</p>
 						</div>
 						<div className="flex flex-col h-full justify-between p-4 w-full">
 							<div className="flex items-baseline gap-1">
 								<div className="text-4xl font-bold text-card-foreground">
-									{probeData.temperature}°
+									{/* {probeData.temperature}° */}
+									{/* wait for influxdb data */}
+									45°
 								</div>
 								<span className="text-slate-500">C</span>
 							</div>
 							<div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mt-4">
 								<div
 									className={`h-full rounded-full ${
-										probeData.temperature > 60 ? "bg-red-500" : "bg-emerald-500"
+										45 > 60 ? "bg-red-500" : "bg-emerald-500"
 									}`}
 									// style={{ width: `${(data.temperature / 80) * 100}%` }}
-									style={{ width: `${(probeData.temperature / 100) * 100}%` }}
+									style={{ width: `${(45 / 100) * 100}%` }}
 								></div>
 							</div>
 							<p className="text-xs text-slate-500 mt-2">

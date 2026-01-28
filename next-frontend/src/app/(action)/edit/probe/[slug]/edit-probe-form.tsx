@@ -1,40 +1,73 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState, useRef } from "react";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
 import { RotateCcw } from "lucide-react";
 import { editProbe } from "@/actions/probe-edit.action";
+import { Probe } from "@/models/probe";
+import { Slug } from "@/models/slug";
+import { SmartImageInput } from "@/components/presigned-image/upload-box";
+import { usePresignedImageUpload } from "@/components/presigned-image/logic";
+import FormSelectBuilding from "@/components/select/form-select-building";
+
+interface ProbeEditFormProps {
+	probeId: string;
+	probe: Probe & { building: Slug };
+	location: LocationInfo;
+	displayMode?: "full" | "modal";
+	fetchPlace?: () => Promise<void>;
+	buildings: {
+		id: number;
+		name: string;
+		buildings: { id: number; name: string }[];
+	}[];
+}
 
 export function ProbeEditForm({
-	slug,
+	probeId,
 	probe,
 	location,
 	displayMode = "full",
 	fetchPlace,
-}: {
-	slug: string;
-	probe: {
-		name: string;
-		lat: number;
-		lng: number;
-		placeId: string | null;
-		address: string;
-		floor?: number;
-		ip: string;
-		serialNumber: string;
-		buildingId: string;
-		// other building properties...
-	};
-	location: LocationInfo | null;
-	displayMode?: "full" | "modal";
-	fetchPlace?: () => Promise<void>;
-}) {
-	// ⭐️ KEY POINT: สร้าง version ของ action ที่มี id ฝังอยู่แล้ว
-	// null ตัวแรกคือ context (this) ซึ่งใน server action เราไม่ใช้
-	const editProbeWithId = editProbe.bind(null, slug);
+	buildings,
+}: ProbeEditFormProps) {
+	// ⭐️ STEP 1: Initialize the uploader hook for managing file uploads AND deletions
+	const upload = usePresignedImageUpload(3);
 
-	// ส่ง bound action เข้าไปใน hook
+	// ⭐️ STEP 2: Create a version of the action with probe id bound
+	// null ตัวแรกคือ context (this) ซึ่งใน server action เราไม่ใช้
+	const editProbeWithId = editProbe.bind(null, probeId);
+
+	// ⭐️ STEP 3: Get the server action state from useActionState hook
 	const [state, formAction, isPending] = useActionState(editProbeWithId, null);
+
+	// ⭐️ STEP 4: Create a reference to access the form element in handleSubmit
+	const formRef = useRef<HTMLFormElement | null>(null);
+
+	// ⭐️ STEP 5: Custom form handler that bridges client-side file data + server action
+	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		// Get successful new file uploads
+		const newImages = upload.getSubmitPayload();
+
+		// Get deleted images from hook
+		const deletedImages = upload.getDeletedImages();
+
+		// Get all form fields
+		const form = e.currentTarget;
+		const formData = new FormData(form);
+
+		// Append file data to FormData
+		formData.append("images", JSON.stringify(newImages));
+		formData.append("deletedImages", JSON.stringify(deletedImages));
+		formData.append("hasErrorFiles", upload.hasErrorFiles() ? "true" : "false");
+
+		// Manually invoke the server action with combined FormData
+		startTransition(() => {
+			formAction(formData);
+		});
+	};
 
 	return (
 		<div
@@ -44,7 +77,11 @@ export function ProbeEditForm({
 			<div className="text-[clamp(0.5rem,3vw,1.5rem)] text-secondary-foreground/90 font-semibold">
 				Edit Probe
 			</div>
-			<form action={formAction} className="text-sm text-black dark:text-white">
+			<form
+				onSubmit={handleFormSubmit}
+				className="text-sm text-black dark:text-white max-h-[75dvh] overflow-y-auto no-scrollbar"
+				ref={formRef}
+			>
 				<fieldset
 					className="space-y-4 w-full transition-opacity
 										disabled:[&_input]:cursor-progress disabled:[&_input]:opacity-50
@@ -214,26 +251,37 @@ export function ProbeEditForm({
 							</p>
 						)}
 					</div>
-					{/* IPv4 Input */}
+
+					{/* ZoneId input (Dropdown zone namelist) */}
 					<div>
 						<label
-							htmlFor="ip"
+							htmlFor="zoneId"
 							className="block text-sm font-medium mb-2 text-secondary-foreground/70"
 						>
-							IP Address
+							Zone
 						</label>
-						<input
-							id="ip"
-							name="ip"
-							placeholder="enter IP address"
-							data-error={state?.errors?.ip ? "true" : undefined}
-							defaultValue={state?.inputs?.ip?.toString() ?? probe.ip}
-							className="border p-2 w-full rounded focus:outline-none focus:border-primary/75 focus:border-2 placeholder:text-xs
-												data-[error=true]:border-rose-600 data-[error=true]:dark:border-rose-500"
+						<FormSelectBuilding
+							name="buildingId"
+							defaultValue={
+								state?.inputs?.buildingId?.toString() ??
+								probe.building.id.toString()
+							}
+							dataList={buildings}
 						/>
-						{state?.errors?.ip && (
+					</div>
+
+					{/* ⭐️ STEP 6: Image component handles both existing images display + new uploads */}
+					<div>
+						<SmartImageInput
+							disabled={isPending}
+							uploader={upload}
+							name="probe_images"
+							label="Probe Images"
+							existingImages={probe.images || []}
+						/>
+						{state?.errors?.hasErrorFiles && (
 							<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
-								{state.errors.ip.join(", ")}
+								{state.errors.hasErrorFiles.join(", ")}
 							</p>
 						)}
 					</div>

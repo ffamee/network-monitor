@@ -3,14 +3,8 @@ import { use, useRef, useState } from "react";
 import { ProbeAddForm } from "./add-probe-form";
 import { PlaceHandler } from "../../../../../components/gl-map/map-place";
 import AddProbeMap from "./add-probe-map";
-
-export type LocationInfo = {
-	lat: number;
-	lng: number;
-	placeId?: string;
-	address?: string; // ถ้ากด POI
-	name?: string; // ถ้ากด POI
-};
+import { getIdFromSlug } from "@/lib/slug";
+import { LocationInfo } from "../../building/[slug]/page";
 
 export default function AddBuildingPage({
 	params,
@@ -18,6 +12,9 @@ export default function AddBuildingPage({
 	params: Promise<{ slug: string }>;
 }) {
 	const { slug } = use(params);
+	const buildingId = getIdFromSlug(slug);
+	if (!buildingId || isNaN(Number(buildingId)))
+		throw new Error("Invalid building slug");
 	const [location, setLocation] = useState<LocationInfo | null>(null);
 	const mapRef = useRef<PlaceHandler>(null);
 	// const zone = await fetch(
@@ -43,7 +40,7 @@ export default function AddBuildingPage({
 			<AddProbeMap onLocationSelect={setLocation} ref={mapRef} />
 			{/* {location && <pre>{JSON.stringify(location, null, 2)}</pre>} */}
 			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
-				<ProbeAddForm {...{ buildingId: slug, location, fetchPlace }} />
+				<ProbeAddForm {...{ buildingId, location, fetchPlace }} />
 			</div>
 		</div>
 	);

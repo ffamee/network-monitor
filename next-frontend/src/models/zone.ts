@@ -8,7 +8,6 @@ type Zone = {
 	geojson: GeoJSON.Geometry | null;
 	slug: string;
 	images: ImageInfo[];
-	// buildings: Building[];
 };
 
 export type { Zone };

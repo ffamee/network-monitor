@@ -5,31 +5,28 @@ import EditBuildingMap from "./edit-building-map";
 import { PlaceHandler } from "@/components/gl-map/map-place";
 import { LocationInfo } from "@/app/(action)/add/building/[slug]/page";
 import { ProbeEditForm } from "./edit-probe-form";
+import { Probe } from "@/models/probe";
+import { Slug } from "@/models/slug";
 
 interface EditBuildingPageProps {
-	slug: string;
-	probe: {
+	probeId: string;
+	probe: Probe & { building: Slug };
+	buildings: {
+		id: number;
 		name: string;
-		lat: number;
-		lng: number;
-		placeId: string | null;
-		address: string;
-		floor?: number;
-		ip: string;
-		serialNumber: string;
-		buildingId: string;
-		// other building properties...
-	};
+		buildings: { id: number; name: string }[];
+	}[];
 }
 
 export default function EditBuildingComponentPage({
-	slug,
+	probeId,
 	probe,
+	buildings,
 }: EditBuildingPageProps) {
 	const [location, setLocation] = useState<LocationInfo>({
 		lat: probe.lat,
 		lng: probe.lng,
-		...(probe.placeId && { placeId: probe.placeId }),
+		...(probe.googlePlaceId && { placeId: probe.googlePlaceId }),
 		...(probe.address && { address: probe.address }),
 	});
 	const mapRef = useRef<PlaceHandler>(null);
@@ -47,7 +44,9 @@ export default function EditBuildingComponentPage({
 		<div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
 			<EditBuildingMap onLocationSelect={setLocation} ref={mapRef} />
 			<div className="py-4 w-full h-full flex flex-col justify-center items-start gap-2 px-[clamp(16px,5vw,64px)] text-foreground">
-				<ProbeEditForm {...{ slug, probe, location, fetchPlace }} />
+				<ProbeEditForm
+					{...{ probeId, probe, location, fetchPlace, buildings }}
+				/>
 			</div>
 		</div>
 	);

@@ -251,6 +251,11 @@ export function BuildingAddForm({
 							name="building_images"
 							label="Building Images"
 						/>
+						{state?.errors?.hasErrorFiles && (
+							<p className="text-rose-600 dark:text-rose-500 text-sm mt-1">
+								{state.errors.hasErrorFiles.join(", ")}
+							</p>
+						)}
 					</div>
 
 					{/* Global Error Message */}

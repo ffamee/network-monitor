@@ -8,7 +8,7 @@ import { Building } from "@/models/building";
 import { SmartImageInput } from "@/components/presigned-image/upload-box";
 import { usePresignedImageUpload } from "@/components/presigned-image/logic";
 import { Slug } from "@/models/slug";
-import FormSelect from "@/components/select/form-select";
+import FormSelectZone from "@/components/select/form-select-zone";
 
 interface BuildingEditFormProps {
 	buildingId: string;
@@ -278,7 +278,7 @@ export function BuildingEditForm({
 						>
 							Zone
 						</label>
-						<FormSelect
+						<FormSelectZone
 							name="zoneId"
 							defaultValue={
 								state?.inputs?.zoneId?.toString() ?? building.zone.id.toString()

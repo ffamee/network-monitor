@@ -1,5 +1,6 @@
 import { AlertTriangle, CircleX, History } from "lucide-react";
 import LogPagination from "./log-pagination";
+import Link from "next/link";
 
 type LogEvent = {
 	type: "info" | "warning" | "error";
@@ -12,7 +13,7 @@ const getLogEvents = async (probe: string, date?: string, page?: string) => {
 	const skip = page ? (Number(page) - 1) * limit : 0;
 	// create URL with params
 	const url = new URL(
-		`${process.env.NEXT_PUBLIC_BACKEND_URL}/probe/events/${probe}`
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/probe/events/${probe}`,
 	);
 	if (date) {
 		url.searchParams.append("date", date);
@@ -61,8 +62,15 @@ export default async function LogCard({
 				<History size={20} className="text-primary mb-2" />
 				{data.date && (
 					<span className="ml-auto text-sm text-secondary-foreground/70 hover:p-2 hover:bg-primary/50 rounded-full">
-						<CircleX size={16} className="inline-block mr-2" />
-						Date: {data.date}
+						<Link
+							href={{
+								pathname: "",
+								query: { page: "1" },
+							}}
+						>
+							<CircleX size={16} className="inline-block mr-2" />
+							Date: {data.date}
+						</Link>
 					</span>
 				)}
 			</div>
@@ -77,8 +85,8 @@ export default async function LogCard({
 								event.type === "info"
 									? "bg-emerald-500"
 									: event.type === "warning"
-									? "bg-amber-500"
-									: "bg-red-500"
+										? "bg-amber-500"
+										: "bg-red-500"
 							}`}
 						></div>
 						<div className="flex-1 space-y-2">

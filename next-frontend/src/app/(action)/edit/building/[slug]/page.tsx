@@ -40,8 +40,6 @@ export default async function EditBuildingPage({
 	const buildingId = getIdFromSlug(slug);
 	if (!buildingId || isNaN(Number(buildingId)))
 		throw new Error("Invalid building ID");
-	// const building = getBuildingData(buildingId);
-	// const zones = getZonesList();
 	const [building, zones] = await Promise.all([
 		getBuildingData(buildingId),
 		getZonesList(),

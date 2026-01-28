@@ -12,7 +12,6 @@ type Building = {
 	lng: number;
 	slug: string;
 	images: ImageInfo[];
-	// totalProbes: number;
 };
 
 export type { Building };
