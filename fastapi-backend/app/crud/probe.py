@@ -36,7 +36,10 @@ async def get_probe_for_update(*, session: AsyncSession, probe_id: int) -> Probe
 	probe = await session.get(
 		Probe,
 		probe_id,
-		options=[selectinload(Probe.images), selectinload(Probe.building)],
+		options=[
+			selectinload(Probe.images),
+			selectinload(Probe.building).options(selectinload(Building.zone)),
+		],
 	)
 	return probe
 
@@ -60,6 +63,7 @@ async def create_probe(
 	# create probe
 	probe = Probe(
 		name=probe_in.name,
+		floor=probe_in.floor,
 		serial_number=probe_in.serial_number,
 		description=probe_in.description,
 		address=probe_in.address,
@@ -86,8 +90,21 @@ async def create_probe(
 				)
 
 	await session.commit()
-	await session.refresh(probe, attribute_names=["images", "building"])
-	return probe
+	# await session.refresh(
+	# 	probe, attribute_names=["images", "building"]
+	# )
+
+	statement = (
+		select(Probe)
+		.where(Probe.id == probe.id)
+		.options(
+			selectinload(Probe.images),
+			selectinload(Probe.building).options(selectinload(Building.zone)),
+		)
+	)
+	query = await session.execute(statement)
+	query = query.scalars().one()
+	return query
 
 
 async def update_probe(
@@ -100,7 +117,10 @@ async def update_probe(
 	probe = await session.get(
 		Probe,
 		probe_id,
-		options=[selectinload(Probe.images), selectinload(Probe.building)],
+		options=[
+			selectinload(Probe.images),
+			selectinload(Probe.building).options(selectinload(Building.zone)),
+		],
 	)
 	if not probe:
 		raise HTTPException(status_code=404, detail="Probe not found")
@@ -115,6 +135,7 @@ async def update_probe(
 
 	# update probe fields
 	probe.name = probe_update.name
+	probe.floor = probe_update.floor
 	probe.serial_number = probe_update.serial_number
 	probe.description = probe_update.description
 	probe.address = probe_update.address
@@ -163,5 +184,14 @@ async def update_probe(
 
 	session.add(probe)
 	await session.commit()
-	await session.refresh(probe, attribute_names=["images", "building"])
-	return probe
+	statement = (
+		select(Probe)
+		.where(Probe.id == probe.id)
+		.options(
+			selectinload(Probe.images),
+			selectinload(Probe.building).options(selectinload(Building.zone)),
+		)
+	)
+	query = await session.execute(statement)
+	query = query.scalars().one()
+	return query

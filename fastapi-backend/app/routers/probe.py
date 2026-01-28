@@ -8,6 +8,7 @@ from app.models.probe import (
 	Probe,
 	ProbeCreate,
 	ProbeRead,
+	ProbeReadDetail,
 	ProbeReadRelation,
 	ProbeUpdate,
 )
@@ -24,7 +25,7 @@ async def get_all_probe(session: SessionDep) -> Sequence[Probe]:
 	return await crud_probe.get_all_probe(session=session)
 
 
-@router.get("/{probe_id}", response_model=ProbeRead)
+@router.get("/{probe_id}", response_model=ProbeReadDetail)
 async def get_probe(session: SessionDep, probe_id: int) -> Probe | None:
 	# Retrieve specific probe data
 	probe = await crud_probe.get_probe(session=session, probe_id=probe_id)

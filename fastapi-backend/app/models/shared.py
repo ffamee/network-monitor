@@ -12,3 +12,8 @@ class ObjectRelation(SQLModel):
 	def slug(self) -> str:
 		"""Generate a URL-friendly slug from the zone id and name."""
 		return f"{self.id}-{slugify(self.name)}"
+
+
+class SummaryBase(SQLModel):
+	id: int
+	name: str

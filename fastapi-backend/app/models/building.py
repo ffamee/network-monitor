@@ -100,5 +100,10 @@ class BuildingRead(BuildingBase):
 	images: list["ImageRead"] | None = Field(default=None)
 
 
+class BuildingReadSummary(SQLModel):
+	id: int
+	name: str
+
+
 class BuildingReadRelation(BuildingRead):
 	zone: ObjectRelation

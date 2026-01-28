@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 # Shared properties
 class ProbeBase(SQLModel):
 	name: str = Field(index=True, min_length=1)
+	floor: int | None = Field(default=None)
 	description: str | None = Field(default=None)
 	address: str | None = Field(default=None, nullable=True)
 	# status: str = Field(default="inactive")  # 'active' or 'inactive'
@@ -75,7 +76,7 @@ class Probe(ProbeBase, table=True):
 	)
 	building_id: int = Field(foreign_key="building.id", index=True, ondelete="CASCADE")
 	building: "Building" = Relationship(back_populates="probes")
-	created_at: datetime = Field(
+	created_at: datetime | None = Field(
 		default_factory=lambda: datetime.now(UTC),
 		sa_type=TIMESTAMP(timezone=True),
 		nullable=False,
@@ -90,10 +91,10 @@ class Probe(ProbeBase, table=True):
 
 class ProbeRead(ProbeBase):
 	id: int
-	serial_number: str = Field(serialization_alias="serialNumber")
 	google_place_id: str | None = Field(
 		default=None, serialization_alias="googlePlaceId"
 	)
+	serial_number: str = Field(serialization_alias="serialNumber")
 	lat: Latitude | None = Field(default=None, validation_alias="location")
 	lng: Longitude | None = Field(default=None, validation_alias="location")
 
@@ -110,6 +111,31 @@ class ProbeRead(ProbeBase):
 				return Longitude(point.x)
 		raise ValueError("Invalid geometry data")
 
+	@computed_field
+	@property
+	def slug(self) -> str:
+		"""Generate a URL-friendly slug from the probe id and name."""
+		return f"{self.id}-{slugify(self.name)}"
+
+	images: list["ImageRead"] | None = Field(default=None)
+
+
+class ProbeReadRelation(ProbeRead):
+	building: ObjectRelation
+	zone: ObjectRelation = Field(validation_alias="building")
+
+	@field_validator("zone", mode="before", check_fields=False)
+	@classmethod
+	def extract_zone(cls, v: Any, info: "ValidationInfo") -> ObjectRelation:
+		from app.models.building import Building
+
+		if isinstance(v, Building):
+			zone = v.zone
+			return ObjectRelation(id=zone.id, name=zone.name)
+		raise ValueError("Invalid building data")
+
+
+class ProbeReadDetail(ProbeRead):
 	ip_address: str | None = Field(default=None, serialization_alias="ipAddress")
 
 	# serialize ip_address as string from INET type
@@ -128,14 +154,5 @@ class ProbeRead(ProbeBase):
 			return None
 		return str(v)
 
-	@computed_field
-	@property
-	def slug(self) -> str:
-		"""Generate a URL-friendly slug from the probe id and name."""
-		return f"{self.id}-{slugify(self.name)}"
-
-	images: list["ImageRead"] | None = Field(default=None)
-
-
-class ProbeReadRelation(ProbeRead):
-	building: ObjectRelation
+	created_at: datetime = Field(serialization_alias="createdAt")
+	updated_at: datetime = Field(serialization_alias="updatedAt")

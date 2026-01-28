@@ -9,6 +9,7 @@ from sqlmodel import Column, Field, Relationship, SQLModel
 
 from app.models.building import BuildingRead
 from app.models.image import ImageCreate, ImageDelete, ImageRead
+from app.models.shared import SummaryBase
 
 if TYPE_CHECKING:
 	from .building import Building
@@ -84,9 +85,12 @@ class ZoneRead(ZoneBase):
 	images: list["ImageRead"] | None = Field(default=None)
 
 
-class ZoneReadSummary(SQLModel):
-	id: int
-	name: str
+class ZoneReadSummary(SummaryBase):
+	pass
+
+
+class ZoneReadBuildingSummary(ZoneReadSummary):
+	buildings: list[SummaryBase]
 
 
 class ZoneReadBuilding(ZoneRead):

@@ -9,6 +9,7 @@ from app.models.zone import (
 	ZoneCreate,
 	ZoneRead,
 	ZoneReadBuilding,
+	ZoneReadBuildingSummary,
 	ZoneReadSummary,
 	ZoneUpdate,
 )
@@ -33,6 +34,15 @@ async def get_all_zone(session: SessionDep) -> Sequence[Zone]:
 async def get_zones_summary(session: SessionDep) -> Sequence[Zone]:
 	# return all zones from database
 	return await crud_zone.get_all_zone_summary(session=session)
+
+
+@router.get(
+	"/buildings-summary",
+	response_model=list[ZoneReadBuildingSummary],
+)
+async def get_zones_buildings_summary(session: SessionDep) -> Sequence[Zone]:
+	# return all zones with buildings from database
+	return await crud_zone.get_all_zone_buildings_summary(session=session)
 
 
 @router.get("/{zone_id}", response_model=ZoneReadBuilding)

@@ -31,6 +31,13 @@ async def get_all_zone_summary(*, session: AsyncSession) -> Sequence[Zone]:
 	return zones
 
 
+async def get_all_zone_buildings_summary(*, session: AsyncSession) -> Sequence[Zone]:
+	statement = select(Zone).order_by(Zone.name).options(selectinload(Zone.buildings))
+	results = await session.execute(statement)
+	zones = results.scalars().all()
+	return zones
+
+
 async def get_zone(*, session: AsyncSession, zone_id: int) -> Zone | None:
 	zone = await session.get(
 		Zone,
