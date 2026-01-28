@@ -156,3 +156,9 @@ class ProbeReadDetail(ProbeRead):
 
 	created_at: datetime = Field(serialization_alias="createdAt")
 	updated_at: datetime = Field(serialization_alias="updatedAt")
+
+
+class ProbeReadTable(ProbeRead):
+	ip_address: str | None = Field(default=None, serialization_alias="ipAddress")
+	created_at: datetime = Field(serialization_alias="createdAt")
+	updated_at: datetime = Field(serialization_alias="updatedAt")

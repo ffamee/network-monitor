@@ -10,6 +10,7 @@ from app.models.probe import (
 	ProbeRead,
 	ProbeReadDetail,
 	ProbeReadRelation,
+	ProbeReadTable,
 	ProbeUpdate,
 )
 
@@ -41,6 +42,17 @@ async def get_probe_for_update(session: SessionDep, probe_id: int) -> Probe | No
 	if not probe:
 		raise HTTPException(status_code=404, detail="Probe not found")
 	return probe
+
+
+@router.get("/building/{building_id}", response_model=list[ProbeReadTable])
+async def get_probes_by_building(
+	session: SessionDep, building_id: int
+) -> Sequence[Probe]:
+	# Retrieve probes associated with a specific building
+	probes = await crud_probe.get_probes_by_building(
+		session=session, building_id=building_id
+	)
+	return probes
 
 
 @router.post("", response_model=ProbeReadRelation)

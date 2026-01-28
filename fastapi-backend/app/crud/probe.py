@@ -44,6 +44,19 @@ async def get_probe_for_update(*, session: AsyncSession, probe_id: int) -> Probe
 	return probe
 
 
+async def get_probes_by_building(
+	*, session: AsyncSession, building_id: int
+) -> Sequence[Probe]:
+	statement = (
+		select(Probe)
+		.where(Probe.building_id == building_id)
+		.options(selectinload(Probe.images))
+	)
+	results = await session.execute(statement)
+	probes = results.scalars().all()
+	return probes
+
+
 async def create_probe(
 	*, session: AsyncSession, storage: StorageService, probe_in: ProbeCreate
 ) -> Probe:
