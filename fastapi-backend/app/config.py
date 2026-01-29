@@ -110,5 +110,12 @@ class Settings(BaseSettings):
 	INFLUXDB_VERIFY_SSL: bool = False
 	INFLUXDB_SSL_CA_PATH: str
 
+	# MQTT Settings
+	MQTT_HOST: str = "localhost"
+	MQTT_PORT: int = 1883
+	MQTT_USERNAME: str | None = None
+	MQTT_PASSWORD: str | None = None
+	MQTT_KEEPALIVE: int = 60
+
 
 settings = Settings()  # type: ignore

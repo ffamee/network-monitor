@@ -7,7 +7,7 @@ from shapely.geometry import mapping
 from slugify import slugify
 from sqlmodel import Column, Field, Relationship, SQLModel
 
-from app.models.building import BuildingRead
+from app.models.building import BuildingRead, BuildingReadProbeCount
 from app.models.image import ImageCreate, ImageDelete, ImageRead
 from app.models.probe import ProbeReadMap
 from app.models.shared import SummaryBase
@@ -96,6 +96,10 @@ class ZoneReadBuildingSummary(ZoneReadSummary):
 
 class ZoneReadBuilding(ZoneRead):
 	buildings: list["BuildingRead"]
+
+
+class ZoneReadProbeCount(ZoneRead):
+	buildings: list["BuildingReadProbeCount"]
 
 
 class ZoneReadMap(ZoneRead):

@@ -11,6 +11,7 @@ from app.models.zone import (
 	ZoneReadBuilding,
 	ZoneReadBuildingSummary,
 	ZoneReadMap,
+	ZoneReadProbeCount,
 	ZoneReadSummary,
 	ZoneUpdate,
 )
@@ -70,6 +71,11 @@ async def get_zone(session: SessionDep, zone_id: int) -> Zone:
 	if not zone:
 		raise HTTPException(status_code=404, detail="Zone not found")
 	return zone
+
+
+@router.get("/{zone_id}/detail", response_model=ZoneReadProbeCount)
+async def get_zone_detail(session: SessionDep, zone_id: int) -> Zone:
+	return await crud_zone.get_zone_detail(session=session, zone_id=zone_id)
 
 
 @router.post("", response_model=ZoneRead)

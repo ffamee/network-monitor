@@ -5,12 +5,14 @@ from fastapi import HTTPException
 from geoalchemy2.shape import from_shape
 from shapely import MultiPolygon
 from shapely.geometry import shape
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from app.models.building import Building
 from app.models.image import ZoneImage
+from app.models.probe import Probe
 from app.models.zone import Zone, ZoneCreate, ZoneUpdate
 from app.services.storage import StorageService
 
@@ -47,6 +49,40 @@ async def get_zone(*, session: AsyncSession, zone_id: int) -> Zone | None:
 			selectinload(Zone.buildings).options(selectinload(Building.images)),
 		],
 	)
+	return zone
+
+
+async def get_zone_detail(*, session: AsyncSession, zone_id: int) -> Zone | None:
+	# return zone with buildings and their probe counts
+	statement = (
+		select(Zone)
+		.where(Zone.id == zone_id)
+		.options(
+			selectinload(Zone.images),
+			selectinload(Zone.buildings).options(selectinload(Building.images)),
+		)
+	)
+	results = await session.execute(statement)
+	zone = results.scalars().one_or_none()
+
+	if not zone:
+		raise HTTPException(status_code=404, detail="Zone not found")
+
+	building_ids = [building.id for building in zone.buildings]
+	if building_ids:
+		probe_counts_stmt = (
+			select(Building.id, func.count(Probe.id).label("probe_count"))
+			.join(Probe, Building.id == Probe.building_id, isouter=True)
+			.where(Building.id.in_(building_ids))
+			.group_by(Building.id)
+		)
+		results = await session.execute(probe_counts_stmt)
+		probe_counts = {row.id: row.probe_count for row in results.all()}
+
+		for building in zone.buildings:
+			count_val = probe_counts.get(building.id, 0)
+			object.__setattr__(building, "probe_count", count_val)
+
 	return zone
 
 

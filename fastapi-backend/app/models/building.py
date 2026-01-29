@@ -15,6 +15,7 @@ from sqlalchemy import Column
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.image import ImageCreate, ImageDelete, ImageRead
+from app.models.probe import ProbeRead
 from app.models.shared import ObjectRelation
 
 if TYPE_CHECKING:
@@ -98,6 +99,14 @@ class BuildingRead(BuildingBase):
 		return f"{self.id}-{slugify(self.name)}"
 
 	images: list["ImageRead"] | None = Field(default=None)
+
+
+class BuildingReadProbe(BuildingRead):
+	probes: list["ProbeRead"]
+
+
+class BuildingReadProbeCount(BuildingRead):
+	probe_count: int = Field(default=0, serialization_alias="probeCount")
 
 
 class BuildingReadSummary(SQLModel):
