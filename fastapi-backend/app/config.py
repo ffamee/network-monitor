@@ -102,5 +102,13 @@ class Settings(BaseSettings):
 	MINIO_BUCKET_TEMP: str = "app-temp"
 	MINIO_BUCKET_MAIN: str = "app-storage"
 
+	# InfluxDB Settings
+	INFLUXDB_URL: str = "https://localhost:8086"
+	INFLUXDB_TOKEN: str
+	INFLUXDB_ORG: str
+	INFLUXDB_BUCKET: str
+	INFLUXDB_VERIFY_SSL: bool = False
+	INFLUXDB_SSL_CA_PATH: str
+
 
 settings = Settings()  # type: ignore
