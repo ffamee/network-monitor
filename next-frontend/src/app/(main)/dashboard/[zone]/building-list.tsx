@@ -1,4 +1,4 @@
-import { Building } from "@/models/building";
+import { BuildingWithProbesCount } from "@/models/building";
 import { LayoutGrid } from "lucide-react";
 import AddButton from "./add-button";
 import Link from "next/link";
@@ -6,10 +6,21 @@ import BuildingCard from "./building-card";
 
 interface BuildingListProps {
 	zone: string;
-	buildings: Building[];
+	buildings: BuildingWithProbesCount[];
 }
 
 export default function BuildingList({ zone, buildings }: BuildingListProps) {
+	if (buildings.length === 0) {
+		return (
+			<div className="flex flex-col items-center justify-center py-20 w-full h-64 bg-card border border-ring rounded-2xl shadow-md">
+				<p className="text-lg text-secondary-foreground mb-4">
+					No buildings found in this zone.
+				</p>
+				<AddButton zone={zone} />
+			</div>
+		);
+	}
+
 	return (
 		<div>
 			<h3 className="text-[clamp(1rem,4vw,1.5rem)] font-semibold text-foreground mb-4 flex items-center gap-2 justify-between">

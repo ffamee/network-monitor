@@ -14,4 +14,8 @@ type Building = {
 	images: ImageInfo[];
 };
 
-export type { Building };
+type BuildingWithProbesCount = Building & {
+	probeCount: number;
+};
+
+export type { Building, BuildingWithProbesCount };

@@ -1,9 +1,9 @@
-import { Building } from "@/models/building";
+import { BuildingWithProbesCount } from "@/models/building";
 import { ArrowRight, LaptopMinimal } from "lucide-react";
 import Image from "next/image";
 
 interface BuildingCardProps {
-	building: Building;
+	building: BuildingWithProbesCount;
 }
 
 export default function BuildingCard({ building }: BuildingCardProps) {
@@ -36,7 +36,7 @@ export default function BuildingCard({ building }: BuildingCardProps) {
 				<div className="flex items-center justify-between pt-4 border-t border-secondary-foreground/30">
 					<div className="flex items-center gap-2 text-xs text-secondary-foreground/80">
 						<LaptopMinimal size={14} className="text-emerald-500" />
-						{/* {building.totalProbes} Probes */}0 Probes
+						{building.probeCount} Probes
 					</div>
 					<div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-secondary-foreground group-hover:bg-primary group-hover:text-white transition-all">
 						<ArrowRight size={14} />

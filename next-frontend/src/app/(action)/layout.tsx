@@ -4,7 +4,7 @@ export default function EditLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<section className="min-h-full h-dvh overflow-y-auto overscroll-none no-scrollbar">
+		<section className="container mx-auto min-h-full h-dvh overflow-y-auto overscroll-none no-scrollbar">
 			{children}
 		</section>
 	);

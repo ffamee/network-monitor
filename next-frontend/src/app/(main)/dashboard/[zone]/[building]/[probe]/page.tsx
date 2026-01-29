@@ -62,7 +62,7 @@ export default async function ProbePage({
 	console.log("Probe Data:", probeData);
 
 	return (
-		<div className="min-h-full h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
+		<div className="container mx-auto h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
 			<main className="pt-24 pb-12 px-4 max-w-screen">
 				<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[minmax(150px,auto)] animate-in fade-in slide-in-from-bottom-4 duration-500">
 					{/* Header Card (Full Width) */}

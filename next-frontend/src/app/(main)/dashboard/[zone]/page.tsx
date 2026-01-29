@@ -5,12 +5,12 @@ import { getIdFromSlug } from "@/lib/slug";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import type { Zone } from "@/models/zone";
 import Image from "next/image";
-import type { Building as BuildingType } from "@/models/building";
+import type { BuildingWithProbesCount } from "@/models/building";
 import BuildingList from "./building-list";
 
 async function getZoneData(zoneId: string) {
 	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/${zoneId}`,
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone/${zoneId}/detail`,
 		{
 			headers: {
 				"Content-Type": "application/json",
@@ -37,7 +37,7 @@ export default async function ZonePage({
 
 	const zoneId = getIdFromSlug(zone);
 	if (!zoneId || isNaN(Number(zoneId))) notFound();
-	const zoneData: Zone & { buildings: BuildingType[] } =
+	const zoneData: Zone & { buildings: BuildingWithProbesCount[] } =
 		await getZoneData(zoneId);
 
 	if (!zoneData) notFound();
@@ -50,9 +50,13 @@ export default async function ZonePage({
 	}
 
 	console.log("zoneData:", zoneData);
+	const probesCountInZone = zoneData.buildings.reduce(
+		(acc, building) => acc + building.probeCount,
+		0,
+	);
 
 	return (
-		<div className="min-h-full h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
+		<div className="container mx-auto h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
 			<main className="pt-24 pb-12 px-4 flex flex-col gap-4">
 				<div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 					{/* Zone Header Info */}
@@ -114,7 +118,7 @@ export default async function ZonePage({
 									</div>
 									<div>
 										<div className="text-2xl font-bold text-white">
-											{0 /* zoneData.activeProbes */}
+											{probesCountInZone}
 										</div>
 										<div className="text-xs text-slate-500">Active Probes</div>
 									</div>
