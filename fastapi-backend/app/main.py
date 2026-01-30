@@ -4,21 +4,9 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import building, minio, pings, probe, zone
-from app.services.mqtt import fast_mqtt
+from app.routers import agent, building, influx, minio, pings, probe, zone
 
 logger = logging.getLogger(__name__)
-
-
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-# 	# Startup
-# 	await fast_mqtt.mqtt_startup()
-# 	logger.info("MQTT started")
-# 	yield
-# 	# Shutdown
-# 	await fast_mqtt.mqtt_shutdown()
-# 	logger.info("MQTT stopped")
 
 
 app = FastAPI()
@@ -35,19 +23,14 @@ app.add_middleware(
 )
 
 app.include_router(building.router)
+app.include_router(influx.router)
 app.include_router(minio.router)
 app.include_router(pings.router)
 app.include_router(probe.router)
 app.include_router(zone.router)
+app.include_router(agent.router)
 
 
 @app.get("/")
 def read_root() -> dict[str, str]:
 	return {"message": "Hello World"}
-
-
-@app.get("/publish")
-async def publish_mqtt():
-	fast_mqtt.publish("/mqtt", "Hello from FastAPI")
-	logger.info("Message published to /mqtt")
-	return {"message": "Published"}

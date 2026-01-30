@@ -112,7 +112,7 @@ class InfluxService:
 			logger.error(f"Error querying InfluxDB: {e}")
 			raise e
 
-	def query_raw(self, flux_query: str) -> list[dict[str, Any]]:
+	async def query_raw(self, flux_query: str) -> list[dict[str, Any]]:
 		"""Execute raw Flux query.
 
 		Args:

@@ -10,6 +10,7 @@ from sqlmodel import select
 
 from app.models.building import Building, BuildingCreate, BuildingUpdate
 from app.models.image import BuildingImage
+from app.models.probe import Probe
 from app.models.zone import Zone
 from app.services.storage import StorageService
 
@@ -26,6 +27,20 @@ async def get_all_building(*, session: AsyncSession) -> Sequence[Building]:
 async def get_building(*, session: AsyncSession, building_id: int) -> Building | None:
 	building = await session.get(
 		Building, building_id, options=[selectinload(Building.images)]
+	)
+	return building
+
+
+async def get_building_probe(
+	*, session: AsyncSession, building_id: int
+) -> Building | None:
+	building = await session.get(
+		Building,
+		building_id,
+		options=[
+			selectinload(Building.images),
+			selectinload(Building.probes).options(selectinload(Probe.images)),
+		],
 	)
 	return building
 

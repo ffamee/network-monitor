@@ -8,6 +8,7 @@ from app.models.building import (
 	Building,
 	BuildingCreate,
 	BuildingRead,
+	BuildingReadProbe,
 	BuildingReadRelation,
 	BuildingUpdate,
 )
@@ -28,6 +29,17 @@ async def get_all_building(session: SessionDep) -> Sequence[Building]:
 async def get_building(session: SessionDep, building_id: int) -> Building | None:
 	# Retrieve specific building data
 	building = await crud_building.get_building(
+		session=session, building_id=building_id
+	)
+	if not building:
+		raise HTTPException(status_code=404, detail="Building not found")
+	return building
+
+
+@router.get("/{building_id}/probes", response_model=BuildingReadProbe)
+async def get_building_probe(session: SessionDep, building_id: int) -> Building | None:
+	# Retrieve specific building data
+	building = await crud_building.get_building_probe(
 		session=session, building_id=building_id
 	)
 	if not building:
