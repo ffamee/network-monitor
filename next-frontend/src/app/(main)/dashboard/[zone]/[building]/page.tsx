@@ -13,7 +13,7 @@ import GoogleMap from "@/components/gl-map/google-map";
 import { ProbeTable } from "./probe-table";
 import { getIdFromSlug } from "@/lib/slug";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { Building } from "@/models/building";
+import { BuildingWithProbe } from "@/models/building";
 import BuildingMapMarker from "./building-map-marker";
 // const GoogleMap = dynamic(() => import("@/components/gl-map/google-map"), {
 // 	ssr: false,
@@ -32,7 +32,7 @@ import BuildingMapMarker from "./building-map-marker";
 
 async function getBuildingData(buildingId: string) {
 	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}`,
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}/probes`,
 		{
 			headers: {
 				// Authorization: `Bearer ${process.env.NEXT_PUBLIC_BACKEND_API_KEY}`,
@@ -57,7 +57,7 @@ export default async function BuildingPage({
 
 	const buildingId = getIdFromSlug(building);
 	if (!buildingId || isNaN(Number(buildingId))) notFound();
-	const buildingData: Building = await getBuildingData(buildingId);
+	const buildingData: BuildingWithProbe = await getBuildingData(buildingId);
 
 	if (!buildingData) notFound();
 	if (buildingData.slug !== building) {
@@ -190,7 +190,7 @@ export default async function BuildingPage({
 							</CardHeader>
 							<CardContent className="h-full">
 								<Suspense fallback={<Spinner className="h-full rounded-4xl" />}>
-									<TrafficSplitBar />
+									<TrafficSplitBar buildingId={buildingId} />
 								</Suspense>
 							</CardContent>
 						</Card>

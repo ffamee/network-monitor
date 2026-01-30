@@ -141,7 +141,7 @@ export default async function DashboardPage() {
 							<TableHeader>
 								<TableRow>
 									<TableHead>Zone Name</TableHead>
-									<TableHead>Slug</TableHead>
+									<TableHead>Description</TableHead>
 									<TableHead>Actions</TableHead>
 								</TableRow>
 							</TableHeader>

@@ -243,7 +243,7 @@ export const ProbeTable = ({
 					สถานะอุปกรณ์ (Probes Status)
 				</CardTitle>
 				<CardAction className="flex gap-4">
-					<AddProbeButton building={buildingId} />
+					<AddProbeButton building={buildingSlug} />
 					<div className="relative">
 						<Search
 							className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"

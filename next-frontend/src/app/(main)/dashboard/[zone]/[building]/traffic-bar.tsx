@@ -1,25 +1,27 @@
-"use client";
 import { Download, Upload } from "lucide-react";
-import { useState, useEffect } from "react";
 
-export const TrafficSplitBar = () => {
-	const [download, setDownload] = useState(854);
-	const [upload, setUpload] = useState(432);
+export const TrafficSplitBar = async ({
+	buildingId,
+}: {
+	buildingId: string;
+}) => {
+	const res = await fetch(
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/influx/bandwidth/${buildingId}`,
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+			credentials: "include",
+		},
+	);
+	if (!res.ok) {
+		throw new Error("Failed to fetch bandwidth data");
+	}
 
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setDownload((prev) =>
-				Math.max(
-					100,
-					Math.min(1000, prev + Math.floor(Math.random() * 100) - 50),
-				),
-			);
-			setUpload((prev) =>
-				Math.max(50, Math.min(600, prev + Math.floor(Math.random() * 80) - 40)),
-			);
-		}, 2000);
-		return () => clearInterval(interval);
-	}, []);
+	const data = await res.json();
+
+	const download = data[0]?._value || 0;
+	const upload = data[1]?._value || 0;
 
 	const total = download + upload;
 	const downPercent = (download / total) * 100;
@@ -33,7 +35,7 @@ export const TrafficSplitBar = () => {
 						<Download size={14} /> Download
 					</div>
 					<div className="text-2xl font-bold text-black dark:text-white">
-						{download}{" "}
+						{download.toFixed(2)}{" "}
 						<span className="text-sm text-card-foreground/75 font-normal">
 							Mbps
 						</span>
@@ -44,7 +46,7 @@ export const TrafficSplitBar = () => {
 						Upload <Upload size={14} />
 					</div>
 					<div className="text-2xl font-bold text-black dark:text-white">
-						{upload}{" "}
+						{upload.toFixed(2)}{" "}
 						<span className="text-sm text-card-foreground/75 font-normal">
 							Mbps
 						</span>
@@ -79,7 +81,8 @@ export const TrafficSplitBar = () => {
 			<div className="text-center mt-3 text-xs text-card-foreground/75">
 				Total Bandwidth:{" "}
 				<span className="text-card-foreground font-medium">
-					{(total / 1024).toFixed(2)} Gbps
+					{total > 1024 ? (total / 1024).toFixed(2) : total.toFixed(2)}{" "}
+					{total > 1024 ? "Gbps" : "Mbps"}
 				</span>
 			</div>
 		</div>

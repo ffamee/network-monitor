@@ -1,4 +1,5 @@
 import { ImageInfo } from "./image";
+import { Probe } from "./probe";
 
 type Building = {
 	id: number;
@@ -18,4 +19,8 @@ type BuildingWithProbesCount = Building & {
 	probeCount: number;
 };
 
-export type { Building, BuildingWithProbesCount };
+type BuildingWithProbe = Building & {
+	probes: Probe[];
+};
+
+export type { Building, BuildingWithProbesCount, BuildingWithProbe };

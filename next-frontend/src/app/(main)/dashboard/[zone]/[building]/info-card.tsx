@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building } from "@/models/building";
+import { BuildingWithProbe } from "@/models/building";
 import { Pencil, Server } from "lucide-react";
 import Link from "next/link";
 
 interface BuildingInfoCardProps {
-	building: Building;
+	building: BuildingWithProbe;
 	slug: string;
 	zoneSlug: string;
 }
@@ -57,7 +57,7 @@ export const InfoCard = (props: BuildingInfoCardProps) => {
 							อุปกรณ์ทั้งหมด
 						</label>
 						<div className="text-2xl font-bold text-primary/75">
-							{/* {props.building.totalProbes}{" "} */}0
+							{props.building.probes.length}{" "}
 							<span className="text-sm font-normal text-card-foreground/75">
 								ตัว
 							</span>

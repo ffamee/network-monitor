@@ -61,7 +61,7 @@ export default async function ZonePage({
 				<div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 					{/* Zone Header Info */}
 					<div
-						className={`relative rounded-3xl overflow-hidden h-64 border border-accent shadow-2xl`}
+						className={`relative rounded-3xl overflow-hidden h-64 border border-accent shadow-md`}
 					>
 						{zoneData.images.length > 0 && (
 							<Image

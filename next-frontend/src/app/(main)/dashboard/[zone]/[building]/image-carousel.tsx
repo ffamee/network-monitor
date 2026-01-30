@@ -52,7 +52,7 @@ export function BuildingImageCarousel(props: BuildingCarouselProps) {
 	return (
 		<Carousel
 			setApi={setApi}
-			className="group w-full h-full relative"
+			className="group w-full h-full relative aspect-square"
 			plugins={[plugins.current]}
 			opts={{
 				loop: true,
@@ -63,8 +63,8 @@ export function BuildingImageCarousel(props: BuildingCarouselProps) {
 				<CarouselContent className="h-full">
 					{props.images.map((img, index) => (
 						<CarouselItem key={index}>
-							<Card className="bg-stone-900 rounded-4xl w-full h-full max-h-full">
-								<CardContent className="flex aspect-square items-center justify-center">
+							<Card className="bg-stone-900 rounded-4xl w-full h-full">
+								<CardContent className="flex items-center justify-center w-full h-full mask-b-from-50%">
 									<Image
 										loading="eager"
 										src={`${process.env.NEXT_PUBLIC_BUCKET_URL}/${img.url}`}
@@ -72,7 +72,7 @@ export function BuildingImageCarousel(props: BuildingCarouselProps) {
 										width={500}
 										height={500}
 										unoptimized={process.env.NODE_ENV === "development"}
-										className="w-full h-full object-cover rounded-lg mask-b-from-50% text-white"
+										className="object-contain rounded-lg text-white"
 									/>
 								</CardContent>
 							</Card>
