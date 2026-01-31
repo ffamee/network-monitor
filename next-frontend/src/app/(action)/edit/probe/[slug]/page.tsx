@@ -1,5 +1,5 @@
 import { getIdFromSlug } from "@/lib/slug";
-import EditBuildingComponentPage from "./edit-building-page";
+import EditProbeComponentPage from "./edit-probe-page";
 
 async function getProbeData(probeId: string) {
 	const res = await fetch(
@@ -43,5 +43,5 @@ export default async function EditBuildingPage({
 		getProbeData(probeId),
 		getBuildingList(),
 	]);
-	return <EditBuildingComponentPage {...{ probeId, probe, buildings }} />;
+	return <EditProbeComponentPage {...{ probeId, probe, buildings }} />;
 }

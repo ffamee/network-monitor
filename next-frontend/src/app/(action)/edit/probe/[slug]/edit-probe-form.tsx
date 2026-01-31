@@ -299,7 +299,7 @@ export function ProbeEditForm({
 							type="submit"
 							className="bg-primary text-white px-4 py-2 rounded hover:scale-105 transition-all cursor-pointer"
 						>
-							{isPending ? "Adding..." : "Add Probe"}
+							{isPending ? "Updating..." : "Save Changes"}
 						</button>
 					</div>
 				</fieldset>

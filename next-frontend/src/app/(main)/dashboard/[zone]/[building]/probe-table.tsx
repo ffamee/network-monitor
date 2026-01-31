@@ -21,161 +21,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AddProbeButton from "./add-probe-button";
 import { ProbeWithStats } from "@/models/probe";
-import { set } from "zod";
 import { formatTimeAgo } from "@/lib/formatter";
-
-const initialProbes = [
-	{
-		id: "PB-001",
-		name: "Main Gateway - Fl.1",
-		location: "Server Room A",
-		ip: "192.168.1.1",
-		status: "online",
-		latency: 5,
-		uptime: "99.9%",
-		lastCheck: "1 min ago",
-	},
-	{
-		id: "PB-002",
-		name: "Access Point - Lobby",
-		location: "Lobby Hall",
-		ip: "192.168.1.15",
-		status: "online",
-		latency: 12,
-		uptime: "98.5%",
-		lastCheck: "1 min ago",
-	},
-	{
-		id: "PB-003",
-		name: "Switch Core - Fl.5",
-		location: "Datacenter",
-		ip: "192.168.5.2",
-		status: "warning",
-		latency: 150,
-		uptime: "95.0%",
-		lastCheck: "2 mins ago",
-	},
-	{
-		id: "PB-004",
-		name: "Camera Circuit - Parking",
-		location: "Basement B2",
-		ip: "192.168.10.44",
-		status: "offline",
-		latency: 0,
-		uptime: "82.1%",
-		lastCheck: "5 mins ago",
-	},
-	{
-		id: "PB-005",
-		name: "Office Wi-Fi - Fl.12",
-		location: "East Wing",
-		ip: "192.168.12.10",
-		status: "online",
-		latency: 8,
-		uptime: "99.2%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-006",
-		name: "IoT Sensor - Temp",
-		location: "Server Room A",
-		ip: "192.168.1.200",
-		status: "online",
-		latency: 25,
-		uptime: "99.9%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-007",
-		name: "Backup Server",
-		location: "Server Room B",
-		ip: "192.168.2.5",
-		status: "online",
-		latency: 4,
-		uptime: "99.9%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-008",
-		name: "CCTV Recorder",
-		location: "Security Office",
-		ip: "192.168.3.10",
-		status: "online",
-		latency: 7,
-		uptime: "99.7%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-009",
-		name: "Guest Wi-Fi - Fl.1",
-		location: "Lobby Hall",
-		ip: "192.168.1.50",
-		status: "online",
-		latency: 10,
-		uptime: "98.9%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-010",
-		name: "Environmental Monitor",
-		location: "Data Center",
-		ip: "192.168.4.20",
-		status: "online",
-		latency: 15,
-		uptime: "99.5%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-011",
-		name: "Access Point - Fl.8",
-		location: "Conference Room",
-		ip: "192.168.8.30",
-		status: "online",
-		latency: 9,
-		uptime: "99.3%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-012",
-		name: "Firewall Appliance",
-		location: "Server Room A",
-		ip: "192.168.1.100",
-		status: "offline",
-		latency: 125,
-		uptime: "69.8%",
-		lastCheck: "10 mins ago",
-	},
-	{
-		id: "PB-013",
-		name: "Load Balancer",
-		location: "Data Center",
-		ip: "192.168.4.30",
-		status: "online",
-		latency: 20,
-		uptime: "99.6%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-014",
-		name: "Access Point - Fl.20",
-		location: "Rooftop Lounge",
-		ip: "192.168.20.40",
-		status: "online",
-		latency: 18,
-		uptime: "99.4%",
-		lastCheck: "Now",
-	},
-	{
-		id: "PB-015",
-		name: "VPN Gateway",
-		location: "Server Room B",
-		ip: "192.168.2.100",
-		status: "online",
-		latency: 30,
-		uptime: "99.7%",
-		lastCheck: "Now",
-	},
-];
 
 async function getProbesInBuilding(buildingId: string) {
 	// Fetch probes from API or database based on buildingId
@@ -276,12 +122,12 @@ export const ProbeTable = ({
 									สถานที่ติดตั้ง
 								</TableHead>
 								<TableHead className="pb-3 font-medium">สถานะ</TableHead>
-								<TableHead className="pb-3 font-medium text-right">
+								{/* <TableHead className="pb-3 font-medium text-right">
 									Latency
 								</TableHead>
 								<TableHead className="pb-3 font-medium text-right">
 									Uptime
-								</TableHead>
+								</TableHead> */}
 								<TableHead className="pb-3 pr-2 font-medium text-right">
 									ตรวจสอบล่าสุด
 								</TableHead>
@@ -326,11 +172,16 @@ export const ProbeTable = ({
 									<TableCell className="py-3 font-mono">
 										{probe.ipAddress || "-"}
 									</TableCell>
-									<TableCell className="py-3">{probe.address || "-"}</TableCell>
+									<TableCell
+										className="py-3 max-w-32 truncate"
+										title={probe.address || ""}
+									>
+										{probe.address || "-"}
+									</TableCell>
 									<TableCell className="py-3">
 										<StatusBadge status={probe.status || "offline"} />
 									</TableCell>
-									<TableCell className="py-3 text-right">
+									{/* <TableCell className="py-3 text-right">
 										<span
 											className={`${
 												probe.latency > 100 ? "text-amber-500" : ""
@@ -338,10 +189,10 @@ export const ProbeTable = ({
 										>
 											{probe.latency || "0"} ms
 										</span>
-									</TableCell>
-									<TableCell className="py-3 text-right text-emerald-500 dark:text-emerald-400">
+									</TableCell> */}
+									{/* <TableCell className="py-3 text-right text-emerald-500 dark:text-emerald-400">
 										{probe.uptime || "0"}%
-									</TableCell>
+									</TableCell> */}
 									<TableCell className="py-3 pr-2 text-right">
 										{formatTimeAgo(
 											new Date(probe.lastSeenAt || probe.updatedAt),

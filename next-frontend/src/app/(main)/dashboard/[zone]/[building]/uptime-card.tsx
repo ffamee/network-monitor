@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShieldCheck } from "lucide-react";
 
 export const UpTimeCard = async () => {
-	await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate async data fetching
 	return (
 		<Card className="ring-foreground/20 shadow-md h-full lg:h-auto rounded-4xl lg:col-span-2">
 			<CardContent className="h-full">
@@ -17,10 +16,10 @@ export const UpTimeCard = async () => {
 					</div>
 					<div className="lg:pb-4">
 						<label className="text-card-foreground/75 text-sm">
-							Uptime เฉลี่ย
+							Probe Online
 						</label>
 						<p className="text-3xl font-bold text-emerald-500 dark:text-emerald-400">
-							99.8%
+							50%
 						</p>
 					</div>
 				</div>

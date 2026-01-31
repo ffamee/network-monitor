@@ -18,7 +18,7 @@ export const AlertCard = async () => {
 					<div className="lg:pb-4">
 						<p className="text-card-foreground/75 text-sm">แจ้งเตือนวันนี้</p>
 						<p className="text-3xl font-bold text-rose-600 dark:text-rose-500">
-							3
+							0
 						</p>
 					</div>
 				</div>
