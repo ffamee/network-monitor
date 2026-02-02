@@ -94,7 +94,7 @@ async def report_ip(
 
 @router.post("/heartbeat")
 async def agent_heartbeat(
-	redis_client: RedisDep, message: dict[str, Any] = Body(...)
+	session: SessionDep, redis_client: RedisDep, message: dict[str, Any] = Body(...)
 ) -> dict[str, str]:
 	"""Receive heartbeat messages from agents and log them.
 
@@ -129,6 +129,6 @@ async def agent_heartbeat(
 	redis_key = f"probe:status:{zone_id}:{building_id}"
 
 	# update device heartbeat
-	await redis_client.update_heartbeat(redis_key, probe_id)
+	await redis_client.update_heartbeat(session, redis_key, probe_id)
 
 	return {"status": "ok", "key": redis_key}

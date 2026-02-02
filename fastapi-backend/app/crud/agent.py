@@ -31,6 +31,12 @@ async def set_startup(
 	if not probe:
 		return {"message": "Probe not found"}
 	# Update Probe IP and MAC Address
+	if (
+		str(probe.ip_address) == ip
+		and str(probe.mac_address) == mac_address
+		and probe.serial_number == serial_number
+	):
+		return {"message": "Startup information unchanged"}
 	probe.ip_address = ip
 	probe.mac_address = mac_address
 	probe.serial_number = serial_number

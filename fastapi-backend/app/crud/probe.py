@@ -1,5 +1,7 @@
+import calendar
 import logging
 from collections.abc import Sequence
+from datetime import datetime
 
 from fastapi import HTTPException
 from geoalchemy2.shape import from_shape
@@ -9,6 +11,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from app.models.building import Building
+from app.models.event import Event
 from app.models.image import ProbeImage
 from app.models.probe import Probe, ProbeCreate, ProbeUpdate
 from app.services.redis import RedisService
@@ -92,6 +95,35 @@ async def get_probes_by_building(
 		uptime = await redis_client.get_uptime(redis_key, str(probe.id))
 		object.__setattr__(probe, "uptime", uptime)
 	return probes
+
+
+async def get_probe_monthly_status(session: AsyncSession, probe_id: str) -> dict:
+	result = {}
+	# Get the current year and month
+	now = datetime.now()
+	year = now.year
+	month = now.month
+
+	# Get the number of days in the current month
+	[first_weekday, num_days] = calendar.monthrange(year, month)
+
+	statement = select(Event).where(Event.probe_id == probe_id)
+
+	# Add skip info for the first weekday
+	# result.update({"skip": (first_weekday + 1) % 7, "status": {}})
+	# # Loop through each day in the month
+	# for day in range(1, num_days + 1):
+	# 	date_str = f"{year}-{month:02d}-{day:02d}"
+	# 	print(date_str)
+	# 	if date_str not in events:
+	# 		result["status"][date_str] = "no-data"
+	# 	elif any(event["type"] == "error" for event in events[date_str]):
+	# 		result["status"][date_str] = "error"
+	# 	elif any(event["type"] == "warning" for event in events[date_str]):
+	# 		result["status"][date_str] = "warning"
+	# 	else:
+	# 		result["status"][date_str] = "info"
+	# return result
 
 
 async def create_probe(

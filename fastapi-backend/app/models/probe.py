@@ -19,6 +19,7 @@ from app.models.shared import ObjectRelation
 
 if TYPE_CHECKING:
 	from .building import Building
+	from .event import Event
 	from .image import ProbeImage
 
 
@@ -75,6 +76,9 @@ class Probe(ProbeBase, table=True):
 	)
 	building_id: int = Field(foreign_key="building.id", index=True, ondelete="CASCADE")
 	building: "Building" = Relationship(back_populates="probes")
+	events: list["Event"] | None = Relationship(
+		back_populates="probe", cascade_delete=True
+	)
 	created_at: datetime | None = Field(
 		default_factory=lambda: datetime.now(UTC),
 		sa_type=TIMESTAMP(timezone=True),
