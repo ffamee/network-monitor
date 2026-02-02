@@ -7,7 +7,7 @@ datasources:
   - name: InfluxDB
     type: influxdb
     access: proxy
-    url: http://influxdb2:8086 # Service name in Docker Compose
+    url: https://influxdb2:8086 # Service name in Docker Compose
     isDefault: true
     jsonData:
       version: Flux
@@ -28,7 +28,7 @@ datasources:
     database: $POSTGRES_DB
     jsonData:
       sslmode: "disable"      # No SSL in Docker Network
-      postgresVersion: 1803   # Specify approximate postgres version
+      # postgresVersion: 1803   # Specify approximate postgres version
       timescaledb: false
     secureJsonData:
       password: $POSTGRES_PASSWORD

@@ -26,14 +26,23 @@ fi
 
 if [ -f /run/secrets/postgres-user ]; then
     export POSTGRES_USER=$(cat /run/secrets/postgres-user)
+else
+		echo "WARNING: Postgres user secret not found!"
+		exit 1
 fi
 
 if [ -f /run/secrets/postgres-password ]; then
 		export POSTGRES_PASSWORD=$(cat /run/secrets/postgres-password)
+else
+		echo "WARNING: Postgres password secret not found!"
+		exit 1
 fi
 
 if [ -f /run/secrets/postgres-db ]; then
 		export POSTGRES_DB=$(cat /run/secrets/postgres-db)
+else
+		echo "WARNING: Postgres database name secret not found!"
+		exit 1
 fi
 
 echo "✅ Secrets exported to Environment Variables successfully."
