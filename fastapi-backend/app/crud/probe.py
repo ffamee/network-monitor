@@ -2,13 +2,14 @@ import calendar
 import logging
 from collections.abc import Sequence
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import HTTPException
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
+from sqlmodel import or_, select
 
 from app.models.building import Building
 from app.models.event import Event
@@ -97,8 +98,7 @@ async def get_probes_by_building(
 	return probes
 
 
-async def get_probe_monthly_status(session: AsyncSession, probe_id: str) -> dict:
-	result = {}
+async def get_probe_monthly_status(session: AsyncSession, probe_id: int) -> dict:
 	# Get the current year and month
 	now = datetime.now()
 	year = now.year
@@ -107,23 +107,104 @@ async def get_probe_monthly_status(session: AsyncSession, probe_id: str) -> dict
 	# Get the number of days in the current month
 	[first_weekday, num_days] = calendar.monthrange(year, month)
 
-	statement = select(Event).where(Event.probe_id == probe_id)
+	statement = select(Event).where(
+		Event.probe_id == probe_id,
+		Event.started_at <= datetime(year, month, num_days, 23, 59, 59),
+		or_(Event.resolved_at.is_(None), Event.resolved_at >= datetime(year, month, 1)),
+	)
+	result = await session.execute(statement)
+	events = result.scalars().all()
+	daily_events: dict[int, list[int]] = {}
+	events_score = {"critical": 3, "warning": 2, "info": 1}
+	for event in events:
+		start_date = event.started_at.astimezone(ZoneInfo("Asia/Bangkok"))
+		day = start_date.day
+		if day not in daily_events:
+			daily_events[day] = [0, 0, 0]  # info, warning, critical
+		daily_events[day][events_score[event.severity] - 1] += 1
+		end_day = (
+			event.resolved_at.astimezone(ZoneInfo("Asia/Bangkok")).day
+			if event.resolved_at
+			else num_days
+		)
+		if end_day + 1 not in daily_events:
+			daily_events[end_day + 1] = [0, 0, 0]
+		daily_events[end_day + 1][events_score[event.severity] - 1] -= 1
+	result_status: dict[int, str] = {}
+	start_status = [1, 0, 0]  # info, warning, critical
+	for day in range(1, max(num_days, now.day) + 1):
+		if day in daily_events:
+			# Update start_status
+			for i in range(3):
+				start_status[i] += daily_events[day][i]
+			# Determine status for the day
+			if start_status[2] > 0:
+				result_status[day] = "critical"
+			elif start_status[1] > 0:
+				result_status[day] = "warning"
+			elif start_status[0] > 0:
+				result_status[day] = "info"
+			else:
+				result_status[day] = "no-data"
+		else:
+			# No events for the day
+			if start_status[2] > 0:
+				result_status[day] = "critical"
+			elif start_status[1] > 0:
+				result_status[day] = "warning"
+			elif start_status[0] > 0:
+				result_status[day] = "info"
+			else:
+				result_status[day] = "no-data"
+	for day in range(now.day + 1, num_days + 1):
+		result_status[day] = "no-data"
+	return {"skip": (first_weekday + 1) % 7, "status": result_status}
 
-	# Add skip info for the first weekday
-	# result.update({"skip": (first_weekday + 1) % 7, "status": {}})
-	# # Loop through each day in the month
-	# for day in range(1, num_days + 1):
-	# 	date_str = f"{year}-{month:02d}-{day:02d}"
-	# 	print(date_str)
-	# 	if date_str not in events:
-	# 		result["status"][date_str] = "no-data"
-	# 	elif any(event["type"] == "error" for event in events[date_str]):
-	# 		result["status"][date_str] = "error"
-	# 	elif any(event["type"] == "warning" for event in events[date_str]):
-	# 		result["status"][date_str] = "warning"
-	# 	else:
-	# 		result["status"][date_str] = "info"
-	# return result
+
+async def get_probe_events(
+	*,
+	session: AsyncSession,
+	probe_id: int,
+	date: str | None = None,
+	skip: int = 0,
+	limit: int = 10,
+) -> dict[str, object]:
+	# if date not exists, return all events with pagination ordered by started_at desc
+	if date is None:
+		statement = (
+			select(Event)
+			.where(Event.probe_id == probe_id)
+			.order_by(Event.started_at.desc())
+			.offset(skip)
+			.limit(limit)
+		)
+		result = await session.execute(statement)
+		events = result.scalars().all()
+		return {"events": events, "count": len(events)}
+	else:
+		# filter by date return all events effect this date with pagination ordered by started_at desc
+		# effect : start in this date or not resolved yet or resolved in this date
+		start_datetime = datetime.strptime(date, "%Y-%m-%d")
+		end_datetime = start_datetime.replace(
+			hour=23, minute=59, second=59, microsecond=999999
+		)
+		statement = (
+			select(Event)
+			.where(
+				Event.probe_id == probe_id,
+				Event.started_at <= end_datetime,
+				or_(
+					Event.resolved_at.is_(None),
+					Event.resolved_at >= start_datetime,
+				),
+			)
+			.order_by(Event.started_at.desc())
+			.offset(skip)
+			.limit(limit)
+		)
+		result = await session.execute(statement)
+		events = result.scalars().all()
+		return {"date": date, "events": events, "count": len(events)}
 
 
 async def create_probe(

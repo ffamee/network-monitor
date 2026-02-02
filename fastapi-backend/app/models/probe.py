@@ -169,3 +169,9 @@ class ProbeReadDetail(ProbeReadTable):
 
 class ProbeReadMap(ProbeReadDetail):
 	building: ObjectRelation
+
+
+# special class for probe monthly status
+class ProbeMonthlyStatus(SQLModel):
+	skip: int
+	status: dict[int, str]

@@ -22,7 +22,7 @@ async def grafana_webhook(session: SessionDep, payload: dict[str, Any] = Body(..
 	for alert in alerts:
 		status = alert.get("status")
 		labels = alert.get("labels", {})
-		name = labels.get("rulename")
+		name = labels.get("alertname")
 		building_id = labels.get("building_id")
 		zone_id = labels.get("zone_id")
 		probe_id = labels.get("probe_id")
