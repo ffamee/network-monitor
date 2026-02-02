@@ -107,6 +107,7 @@ class BuildingReadProbe(BuildingRead):
 
 class BuildingReadProbeCount(BuildingRead):
 	probe_count: int = Field(default=0, serialization_alias="probeCount")
+	probe_active: int = Field(default=0, serialization_alias="probeActive")
 
 
 class BuildingReadSummary(SQLModel):

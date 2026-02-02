@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from fastapi import APIRouter, HTTPException
 
 from app.crud import probe as crud_probe
-from app.dependencies import SessionDep, StorageDep
+from app.dependencies import RedisDep, SessionDep, StorageDep
 from app.models.probe import (
 	Probe,
 	ProbeCreate,
@@ -27,9 +27,13 @@ async def get_all_probe(session: SessionDep) -> Sequence[Probe]:
 
 
 @router.get("/{probe_id}", response_model=ProbeReadDetail)
-async def get_probe(session: SessionDep, probe_id: int) -> Probe | None:
+async def get_probe(
+	session: SessionDep, redis_client: RedisDep, probe_id: int
+) -> Probe | None:
 	# Retrieve specific probe data
-	probe = await crud_probe.get_probe(session=session, probe_id=probe_id)
+	probe = await crud_probe.get_probe(
+		session=session, redis_client=redis_client, probe_id=probe_id
+	)
 	if not probe:
 		raise HTTPException(status_code=404, detail="Probe not found")
 	return probe
@@ -46,11 +50,11 @@ async def get_probe_for_update(session: SessionDep, probe_id: int) -> Probe | No
 
 @router.get("/building/{building_id}", response_model=list[ProbeReadTable])
 async def get_probes_by_building(
-	session: SessionDep, building_id: int
+	session: SessionDep, redis_client: RedisDep, building_id: int
 ) -> Sequence[Probe]:
 	# Retrieve probes associated with a specific building
 	probes = await crud_probe.get_probes_by_building(
-		session=session, building_id=building_id
+		session=session, redis_client=redis_client, building_id=building_id
 	)
 	return probes
 

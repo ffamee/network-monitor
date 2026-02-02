@@ -6,12 +6,13 @@ from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
+from sqlmodel import func, select
 
 from app.models.building import Building, BuildingCreate, BuildingUpdate
 from app.models.image import BuildingImage
 from app.models.probe import Probe
 from app.models.zone import Zone
+from app.services.redis import RedisService
 from app.services.storage import StorageService
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,32 @@ async def get_building_probe(
 			selectinload(Building.probes).options(selectinload(Probe.images)),
 		],
 	)
+	return building
+
+
+async def get_building_probe_count(
+	*, session: AsyncSession, redis_client: RedisService, building_id: int
+) -> Building | None:
+	building = await session.get(
+		Building,
+		building_id,
+		options=[
+			selectinload(Building.images),
+			selectinload(Building.zone),
+		],
+	)
+	if not building:
+		return None
+
+	statement = select(func.count(Probe.id)).where(Probe.building_id == building_id)
+	result = await session.execute(statement)
+	probe_count = result.scalar_one()
+	object.__setattr__(building, "probe_count", probe_count)
+
+	# count active probes from redis
+	pattern = f"probe:status:{building.zone_id}:{building.id}"
+	active_count = await redis_client.get_active_count(pattern)
+	object.__setattr__(building, "probe_active", active_count)
 	return building
 
 

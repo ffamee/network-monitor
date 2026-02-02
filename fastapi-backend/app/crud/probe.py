@@ -11,6 +11,7 @@ from sqlmodel import select
 from app.models.building import Building
 from app.models.image import ProbeImage
 from app.models.probe import Probe, ProbeCreate, ProbeUpdate
+from app.services.redis import RedisService
 from app.services.storage import StorageService
 
 logger = logging.getLogger(__name__)
@@ -23,12 +24,25 @@ async def get_all_probe(*, session: AsyncSession) -> Sequence[Probe]:
 	return probes
 
 
-async def get_probe(*, session: AsyncSession, probe_id: int) -> Probe | None:
+async def get_probe(
+	*, session: AsyncSession, redis_client: RedisService, probe_id: int
+) -> Probe | None:
 	probe = await session.get(
 		Probe,
 		probe_id,
-		options=[selectinload(Probe.images)],
+		options=[
+			selectinload(Probe.images),
+			selectinload(Probe.building),
+		],
 	)
+	redis_key = f"probe:status:{probe.building.zone_id}:{probe.building_id}"
+	data = await redis_client.check_is_online(redis_key, str(probe.id))
+	if data:
+		object.__setattr__(probe, "status", "online")
+	else:
+		object.__setattr__(probe, "status", "offline")
+	uptime = await redis_client.get_uptime(redis_key, str(probe.id))
+	object.__setattr__(probe, "uptime", uptime)
 	return probe
 
 
@@ -45,7 +59,7 @@ async def get_probe_for_update(*, session: AsyncSession, probe_id: int) -> Probe
 
 
 async def get_probes_by_building(
-	*, session: AsyncSession, building_id: int
+	*, session: AsyncSession, redis_client: RedisService, building_id: int
 ) -> Sequence[Probe]:
 	statement = (
 		select(Probe)
@@ -54,6 +68,29 @@ async def get_probes_by_building(
 	)
 	results = await session.execute(statement)
 	probes = results.scalars().all()
+
+	# get zone id for building
+	statement_zone = (
+		select(Building)
+		.where(Building.id == building_id)
+		.options(selectinload(Building.zone))
+	)
+	result_zone = await session.execute(statement_zone)
+	building = result_zone.scalars().one()
+
+	if not building:
+		raise HTTPException(status_code=404, detail="Building not found")
+
+	# extend with probe status from Redis
+	for probe in probes:
+		redis_key = f"probe:status:{building.zone_id}:{building_id}"
+		data = await redis_client.check_is_online(redis_key, str(probe.id))
+		if data:
+			object.__setattr__(probe, "status", "online")
+		else:
+			object.__setattr__(probe, "status", "offline")
+		uptime = await redis_client.get_uptime(redis_key, str(probe.id))
+		object.__setattr__(probe, "uptime", uptime)
 	return probes
 
 

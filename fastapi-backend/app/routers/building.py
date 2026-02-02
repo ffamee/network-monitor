@@ -3,12 +3,13 @@ from collections.abc import Sequence
 from fastapi import APIRouter, HTTPException
 
 from app.crud import building as crud_building
-from app.dependencies import SessionDep, StorageDep
+from app.dependencies import RedisDep, SessionDep, StorageDep
 from app.models.building import (
 	Building,
 	BuildingCreate,
 	BuildingRead,
 	BuildingReadProbe,
+	BuildingReadProbeCount,
 	BuildingReadRelation,
 	BuildingUpdate,
 )
@@ -41,6 +42,19 @@ async def get_building_probe(session: SessionDep, building_id: int) -> Building 
 	# Retrieve specific building data
 	building = await crud_building.get_building_probe(
 		session=session, building_id=building_id
+	)
+	if not building:
+		raise HTTPException(status_code=404, detail="Building not found")
+	return building
+
+
+@router.get("/{building_id}/probes-count", response_model=BuildingReadProbeCount)
+async def get_building_probe_count(
+	session: SessionDep, redis_client: RedisDep, building_id: int
+) -> Building | None:
+	# Retrieve specific building data
+	building = await crud_building.get_building_probe_count(
+		session=session, redis_client=redis_client, building_id=building_id
 	)
 	if not building:
 		raise HTTPException(status_code=404, detail="Building not found")

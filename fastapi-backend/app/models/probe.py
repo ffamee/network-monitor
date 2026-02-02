@@ -7,7 +7,6 @@ from pydantic import (
 	ConfigDict,
 	ValidationInfo,
 	computed_field,
-	field_serializer,
 	field_validator,
 )
 from pydantic_extra_types.coordinate import Latitude, Longitude
@@ -135,21 +134,27 @@ class ProbeReadRelation(ProbeRead):
 		raise ValueError("Invalid building data")
 
 
-class ProbeReadDetail(ProbeRead):
+class ProbeReadTable(ProbeRead):
+	status: str = Field(default="offline")
+	uptime: float = Field(default=0.0)
 	ip_address: str | None = Field(default=None, serialization_alias="ipAddress")
 
 	# serialize ip_address as string from INET type
-	@field_serializer("ip_address", mode="plain")
-	def serialize_ip_address(self, v: Any) -> str | None:
+	@field_validator("ip_address", mode="before", check_fields=False)
+	@classmethod
+	def serialize_ip_address(cls, v: Any) -> str | None:
 		if v is None:
 			return None
 		return str(v)
 
+
+class ProbeReadDetail(ProbeReadTable):
 	mac_address: str | None = Field(default=None, serialization_alias="macAddress")
 
 	# serialize mac_address as string from MACADDR type
-	@field_serializer("mac_address", mode="plain")
-	def serialize_mac_address(self, v: Any) -> str | None:
+	@field_validator("mac_address", mode="before", check_fields=False)
+	@classmethod
+	def serialize_mac_address(cls, v: Any) -> str | None:
 		if v is None:
 			return None
 		return str(v)
@@ -158,12 +163,5 @@ class ProbeReadDetail(ProbeRead):
 	updated_at: datetime = Field(serialization_alias="updatedAt")
 
 
-class ProbeReadTable(ProbeRead):
-	ip_address: str | None = Field(default=None, serialization_alias="ipAddress")
-	created_at: datetime = Field(serialization_alias="createdAt")
-	updated_at: datetime = Field(serialization_alias="updatedAt")
-
-
-class ProbeReadMap(ProbeRead):
-	ip_address: str | None = Field(default=None, serialization_alias="ipAddress")
+class ProbeReadMap(ProbeReadDetail):
 	building: ObjectRelation
