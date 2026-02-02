@@ -23,24 +23,6 @@ import AddProbeButton from "./add-probe-button";
 import { ProbeWithStats } from "@/models/probe";
 import { formatTimeAgo } from "@/lib/formatter";
 
-async function getProbesInBuilding(buildingId: string) {
-	// Fetch probes from API or database based on buildingId
-	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}/probes`,
-		{
-			headers: {
-				"Content-Type": "application/json",
-			},
-			credentials: "include",
-		},
-	);
-	if (!res.ok) {
-		throw new Error("Failed to fetch probes data");
-	}
-	const data = await res.json();
-	return data;
-}
-
 export const ProbeTable = ({
 	buildingId,
 	buildingSlug,
@@ -124,13 +106,13 @@ export const ProbeTable = ({
 								<TableHead className="pb-3 font-medium">สถานะ</TableHead>
 								{/* <TableHead className="pb-3 font-medium text-right">
 									Latency
-								</TableHead>
+								</TableHead> */}
 								<TableHead className="pb-3 font-medium text-right">
 									Uptime
-								</TableHead> */}
-								<TableHead className="pb-3 pr-2 font-medium text-right">
-									ตรวจสอบล่าสุด
 								</TableHead>
+								{/* <TableHead className="pb-3 pr-2 font-medium text-right">
+									ตรวจสอบล่าสุด
+								</TableHead> */}
 							</TableRow>
 						</TableHeader>
 						<TableBody className="text-secondary-foreground/75 min-h-0 h-full">
@@ -191,12 +173,13 @@ export const ProbeTable = ({
 										</span>
 									</TableCell> */}
 									{/* <TableCell className="py-3 text-right text-emerald-500 dark:text-emerald-400">
-										{probe.uptime || "0"}%
+										{probe.uptime || "0"}
 									</TableCell> */}
 									<TableCell className="py-3 pr-2 text-right">
-										{formatTimeAgo(
+										{/* {formatTimeAgo(
 											new Date(probe.lastSeenAt || probe.updatedAt),
-										)}
+										)} */}
+										{probe.uptime ? formatTimeAgo(probe.uptime) : "-"}
 									</TableCell>
 								</TableRow>
 							))}

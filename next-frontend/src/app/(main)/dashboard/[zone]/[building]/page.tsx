@@ -13,7 +13,7 @@ import GoogleMap from "@/components/gl-map/google-map";
 import { ProbeTable } from "./probe-table";
 import { getIdFromSlug } from "@/lib/slug";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { BuildingWithProbe } from "@/models/building";
+import { Building, BuildingWithProbe } from "@/models/building";
 import BuildingMapMarker from "./building-map-marker";
 // const GoogleMap = dynamic(() => import("@/components/gl-map/google-map"), {
 // 	ssr: false,
@@ -32,7 +32,7 @@ import BuildingMapMarker from "./building-map-marker";
 
 async function getBuildingData(buildingId: string) {
 	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}/probes`,
+		`${process.env.NEXT_PUBLIC_BACKEND_URL}/building/${buildingId}/probes-count`,
 		{
 			headers: {
 				// Authorization: `Bearer ${process.env.NEXT_PUBLIC_BACKEND_API_KEY}`,
@@ -57,7 +57,8 @@ export default async function BuildingPage({
 
 	const buildingId = getIdFromSlug(building);
 	if (!buildingId || isNaN(Number(buildingId))) notFound();
-	const buildingData: BuildingWithProbe = await getBuildingData(buildingId);
+	const buildingData: Building & { probeCount: number; probeActive: number } =
+		await getBuildingData(buildingId);
 
 	if (!buildingData) notFound();
 	if (buildingData.slug !== building) {
@@ -162,7 +163,10 @@ export default async function BuildingPage({
 								<Skeleton className="h-full rounded-4xl lg:col-span-2" />
 							}
 						>
-							<UpTimeCard />
+							<UpTimeCard
+								up={buildingData.probeActive}
+								total={buildingData.probeCount}
+							/>
 						</Suspense>
 						<Suspense
 							fallback={

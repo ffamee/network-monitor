@@ -18,7 +18,10 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getIdFromSlug } from "@/lib/slug";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
-import { ProbeDetail } from "@/models/probe";
+import { ProbeWithStats } from "@/models/probe";
+import StatsCard from "./stats-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatTimeAgo } from "@/lib/formatter";
 
 async function getProbeData(probeId: string) {
 	const res = await fetch(
@@ -47,7 +50,7 @@ export default async function ProbePage({
 	const { probe } = await params;
 	const probeId = getIdFromSlug(probe);
 	if (!probeId || isNaN(Number(probeId))) notFound();
-	const probeData: ProbeDetail = await getProbeData(probeId);
+	const probeData: ProbeWithStats = await getProbeData(probeId);
 
 	if (!probeData) notFound();
 	if (probeData.slug !== probe) {
@@ -78,7 +81,7 @@ export default async function ProbePage({
 											{probeData.name}
 										</h2>
 										{/* <StatusBadge status={probeData.status} /> */}
-										<StatusBadge status={"online"} />
+										<StatusBadge status={probeData.status} />
 										<Link
 											href={`/edit/probe/${probe}`}
 											title="แก้ไขข้อมูลอุปกรณ์"
@@ -98,8 +101,7 @@ export default async function ProbePage({
 											<MapPin size={14} /> {probeData.address || "-"}
 										</span>
 										<span className="flex items-center gap-1.5">
-											{/* <Clock size={14} /> {probeData.uptime} */}
-											<Clock size={14} /> {"Uptime: N/A"}
+											<Clock size={14} /> {formatTimeAgo(probeData.uptime)}
 										</span>
 									</div>
 								</div>
@@ -120,58 +122,13 @@ export default async function ProbePage({
 					<LogCalendar probe={probeId} />
 
 					{/* Performance Stats (Small Cards) */}
-					<div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 bg-card p-4 rounded-2xl border border-ring shadow-md">
-						<div className="flex flex-col h-full justify-between p-4 w-full">
-							<div className="text-4xl font-bold text-card-foreground">
-								{/* {probeData.cpuLoad}% */}
-								{/* wait for influxdb data */}
-								50%
-							</div>
-							<div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mt-4">
-								<div
-									className="bg-blue-500 h-full rounded-full"
-									style={{ width: `50%` }}
-								></div>
-							</div>
-							<p className="text-xs text-slate-500 mt-2">Optimal range</p>
-						</div>
-						<div className="flex flex-col h-full justify-between p-4 w-full">
-							<div className="text-4xl font-bold text-card-foreground">
-								{/* {probeData.memoryUsage}% */}
-								{/* wait for influxdb data */}
-								65%
-							</div>
-							<div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mt-4">
-								<div
-									className="bg-purple-500 h-full rounded-full"
-									style={{ width: `62.5%` }}
-								></div>
-							</div>
-							<p className="text-xs text-slate-500 mt-2">5GB / 8GB Used</p>
-						</div>
-						<div className="flex flex-col h-full justify-between p-4 w-full">
-							<div className="flex items-baseline gap-1">
-								<div className="text-4xl font-bold text-card-foreground">
-									{/* {probeData.temperature}° */}
-									{/* wait for influxdb data */}
-									45°
-								</div>
-								<span className="text-slate-500">C</span>
-							</div>
-							<div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden mt-4">
-								<div
-									className={`h-full rounded-full ${
-										45 > 60 ? "bg-red-500" : "bg-emerald-500"
-									}`}
-									// style={{ width: `${(data.temperature / 80) * 100}%` }}
-									style={{ width: `${(45 / 100) * 100}%` }}
-								></div>
-							</div>
-							<p className="text-xs text-slate-500 mt-2">
-								Normal operating temp
-							</p>
-						</div>
-					</div>
+					<Suspense
+						fallback={
+							<Skeleton className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 " />
+						}
+					>
+						<StatsCard probeId={probeId} />
+					</Suspense>
 
 					{/* Info Card (Tall) */}
 					<ProbeInfoCard probe={probeData} />
