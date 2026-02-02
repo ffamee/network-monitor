@@ -62,7 +62,7 @@ export default async function ProbePage({
 	}
 
 	const { date, page } = await searchParams;
-	console.log("Probe Data:", probeData);
+	console.log("Probe Data:", probeData, probeId);
 
 	return (
 		<div className="container mx-auto h-dvh overflow-y-auto no-scrollbar bg-background animate-in fade-in duration-500">
@@ -138,7 +138,7 @@ export default async function ProbePage({
 
 					{/* Logs Card */}
 					<Suspense fallback={<div>Loading logs...</div>}>
-						<LogCard {...{ probe, date, page }} />
+						<LogCard {...{ probe: probeId, date, page }} />
 					</Suspense>
 				</div>
 			</main>

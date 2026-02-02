@@ -10,7 +10,7 @@ async function getMonthlyStatus(probe: string) {
 					"Content-Type": "application/json",
 				},
 				credentials: "include",
-			}
+			},
 		);
 		if (!res.ok) {
 			throw new Error("Failed to fetch monthly status");
@@ -30,11 +30,11 @@ export default async function LogCalendar({ probe }: { probe: string }) {
 	// const month = today.getMonth();
 	const data: {
 		skip: number;
-		status: Record<string, "info" | "warning" | "error" | "no-data" | null>;
+		status: Record<number, "info" | "warning" | "critical" | "no-data" | null>;
 	} = await getMonthlyStatus(probe);
 
 	const getStatusColor = (
-		status: "info" | "warning" | "error" | "no-data" | null
+		status: "info" | "warning" | "critical" | "no-data" | null,
 	) => {
 		if (!status) return "bg-transparent pointer-events-none";
 		// const year = date.getFullYear();
@@ -43,7 +43,7 @@ export default async function LogCalendar({ probe }: { probe: string }) {
 		// const dateKey = `${year}-${month}-${day}`;
 
 		// const status = data[dateKey];
-		if (status === "error")
+		if (status === "critical")
 			return "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)] cursor-pointer";
 		if (status === "warning")
 			return "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)] cursor-pointer";
@@ -61,6 +61,9 @@ export default async function LogCalendar({ probe }: { probe: string }) {
 	// const firstDayOfMonth = new Date(year, month - 1, 1);
 	// const startingDay = firstDayOfMonth.getDay();
 	// counting left days in month from today
+	const today = new Date();
+	const year = today.getFullYear();
+	const month = today.getMonth();
 
 	return (
 		<div className="w-full h-full flex flex-col bg-card p-4 rounded-2xl border border-ring shadow-md">
@@ -84,10 +87,11 @@ export default async function LogCalendar({ probe }: { probe: string }) {
 						color="bg-transparent"
 					/>
 				))}
-				{Object.entries(data.status).map(([date, status], i) => (
+				{/* format date (1-31) to new Date of current month */}
+				{Object.entries(data.status).map(([date, status]) => (
 					<CalendarButton
-						key={i}
-						date={new Date(date)}
+						key={date}
+						date={new Date(year, month, Number(date))}
 						color={getStatusColor(status)}
 					/>
 				))}
