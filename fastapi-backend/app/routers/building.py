@@ -3,11 +3,12 @@ from collections.abc import Sequence
 from fastapi import APIRouter, HTTPException
 
 from app.crud import building as crud_building
-from app.dependencies import RedisDep, SessionDep, StorageDep
+from app.dependencies import InfluxDep, RedisDep, SessionDep, StorageDep
 from app.models.building import (
 	Building,
 	BuildingCreate,
 	BuildingRead,
+	BuildingReadNearest,
 	BuildingReadProbe,
 	BuildingReadProbeCount,
 	BuildingReadRelation,
@@ -24,6 +25,25 @@ router = APIRouter(
 async def get_all_building(session: SessionDep) -> Sequence[Building]:
 	# Retrieve all buildings from the database
 	return await crud_building.get_all_building(session=session)
+
+
+@router.get("/nearest", response_model=BuildingReadNearest)
+async def get_nearest_building(
+	session: SessionDep,
+	influx_client: InfluxDep,
+	redis_client: RedisDep,
+	lat: float,
+	lng: float,
+) -> Building | None:
+	# Retrieve the nearest building based on latitude and longitude
+	building = await crud_building.get_nearest_building(
+		session=session,
+		influxdb_client=influx_client,
+		redis_client=redis_client,
+		lat=lat,
+		lng=lng,
+	)
+	return building
 
 
 @router.get("/{building_id}", response_model=BuildingRead)

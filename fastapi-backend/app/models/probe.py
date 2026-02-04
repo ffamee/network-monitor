@@ -175,3 +175,12 @@ class ProbeReadMap(ProbeReadDetail):
 class ProbeMonthlyStatus(SQLModel):
 	skip: int
 	status: dict[int, str]
+
+
+class ProbeReadStats(ProbeRead):
+	name: str
+	status: str
+	latency: float | str
+	dns: float | str
+	download: float | None
+	upload: float | None

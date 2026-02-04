@@ -15,7 +15,7 @@ from sqlalchemy import Column
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.image import ImageCreate, ImageDelete, ImageRead
-from app.models.probe import ProbeRead
+from app.models.probe import ProbeRead, ProbeReadStats
 from app.models.shared import ObjectRelation
 
 if TYPE_CHECKING:
@@ -117,3 +117,12 @@ class BuildingReadSummary(SQLModel):
 
 class BuildingReadRelation(BuildingRead):
 	zone: ObjectRelation
+
+
+class BuildingReadProbeStats(BuildingRead):
+	probes: list["ProbeReadStats"]
+
+
+class BuildingReadNearest(SQLModel):
+	building: BuildingReadProbeStats | None
+	distance: float

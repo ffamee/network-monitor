@@ -8,10 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import func, select
 
+from app.crud import influx as crud_influx
 from app.models.building import Building, BuildingCreate, BuildingUpdate
 from app.models.image import BuildingImage
 from app.models.probe import Probe
 from app.models.zone import Zone
+from app.services.influx import InfluxService
 from app.services.redis import RedisService
 from app.services.storage import StorageService
 
@@ -81,6 +83,91 @@ async def get_building_for_update(
 		options=[selectinload(Building.images), selectinload(Building.zone)],
 	)
 	return building
+
+
+async def get_nearest_building(
+	*,
+	session: AsyncSession,
+	influxdb_client: InfluxService,
+	redis_client: RedisService,
+	lat: float,
+	lng: float,
+) -> dict[str, Building | float]:
+	try:
+		point = Point(lng, lat)
+		geometry_wkt = from_shape(point, srid=4326)
+	except Exception as e:
+		raise HTTPException(
+			status_code=400, detail=f"Failed to parse coordinates: {str(e)}"
+		)
+
+	statement = (
+		select(Building)
+		.order_by(func.ST_Distance(Building.location, geometry_wkt))
+		.limit(1)
+		.options(
+			selectinload(Building.images),
+			selectinload(Building.probes).options(selectinload(Probe.images)),
+		)
+	)
+	result = await session.execute(statement)
+	building = result.scalars().first()
+
+	if not building:
+		return {"building": None, "distance": -1}
+	dist_query = select(func.ST_DistanceSphere(Building.location, geometry_wkt)).where(
+		Building.id == building.id
+	)
+
+	distance_result = await session.execute(dist_query)
+	distance_value = distance_result.scalar_one()
+
+	# loop assign stats for each probe
+	for probe in building.probes:
+		status = await redis_client.check_is_online(
+			f"probe:status:{building.zone_id}:{building.id}", str(probe.id)
+		)
+		latency = await crud_influx.get_probe_mean_ping_latency(
+			influxdb_client, probe.id
+		)
+		dns = await crud_influx.get_probe_mean_dns_query(influxdb_client, probe.id)
+		bandwidth = await crud_influx.get_probe_mean_bandwidth(
+			influxdb_client, probe.id
+		)
+		if status:
+			object.__setattr__(probe, "status", "online")
+		else:
+			object.__setattr__(probe, "status", "offline")
+		if len(latency) < 2:
+			object.__setattr__(probe, "latency", "N/A")
+		else:
+			l_result_code = latency[1]["_value"]
+			if l_result_code != 0:
+				object.__setattr__(
+					probe,
+					"latency",
+					"NO SUCH HOST" if l_result_code == 1 else "ERROR",
+				)
+			else:
+				object.__setattr__(probe, "latency", latency[0]["_value"])
+		if len(dns) < 2:
+			object.__setattr__(probe, "dns", "N/A")
+		else:
+			d_result_code = dns[1]["_value"]
+			if d_result_code != 0:
+				object.__setattr__(
+					probe, "dns", "TIMEOUT" if d_result_code == 1 else "ERROR"
+				)
+			else:
+				object.__setattr__(probe, "dns", dns[0]["_value"])
+		if len(bandwidth) < 2:
+			object.__setattr__(probe, "download", None)
+			object.__setattr__(probe, "upload", None)
+		else:
+			object.__setattr__(probe, "download", bandwidth[0]["_value"])
+			object.__setattr__(probe, "upload", bandwidth[1]["_value"])
+		print(latency, dns, bandwidth)
+	return {"building": building, "distance": distance_value}
 
 
 async def create_building(
