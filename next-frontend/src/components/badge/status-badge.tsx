@@ -2,12 +2,14 @@ export const StatusBadge = ({ status }: { status: string }) => {
 	const styles = {
 		online: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
 		offline: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+		unknown: "bg-gray-500/10 text-gray-500 border-gray-500/20",
 		// warning: "bg-amber-500/10 text-amber-500 border-amber-500/20",
 	};
 
 	const labels = {
 		online: "ออนไลน์",
 		offline: "ออฟไลน์",
+		unknown: "ไม่ทราบสถานะ",
 		// warning: "แจ้งเตือน",
 	};
 
@@ -21,9 +23,9 @@ export const StatusBadge = ({ status }: { status: string }) => {
 				className={`w-1.5 h-1.5 rounded-full ${
 					status === "online"
 						? "bg-emerald-500"
-						: // : status === "warning"
-							// 	? "bg-amber-500"
-							"bg-rose-500"
+						: status === "unknown"
+							? "bg-gray-500"
+							: "bg-rose-500"
 				}`}
 			></span>
 			{labels[status as keyof typeof labels]}

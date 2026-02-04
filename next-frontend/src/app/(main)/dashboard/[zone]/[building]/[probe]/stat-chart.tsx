@@ -6,6 +6,7 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
+	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
@@ -86,6 +87,16 @@ export function StatChart({ data, description, topic }: StatChartProps) {
 						<RadialBar dataKey="value" background cornerRadius={3} />
 					</RadialBarChart>
 				</ChartContainer>
+				<CardFooter>
+					<div className="text-sm text-muted-foreground text-center">
+						{/* {chartData2.map((d) => (
+							<span key={d.mode} className="inline-block mx-2">
+								{d.mode}: {d.value?.toFixed(2)} ms
+							</span>
+						))} */}
+						<p>Values are in milliseconds (ms)</p>
+					</div>
+				</CardFooter>
 			</CardContent>
 		</Card>
 	);

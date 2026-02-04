@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import UserLocationMap from "./user-location";
 import UserMap from "./user-map";
+import NearestBuilding from "./nearest-building";
 
 async function getAllZones() {
 	const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/zone`, {
@@ -27,38 +28,6 @@ async function getAllZones() {
 	const data = await res.json();
 	return data;
 }
-
-// Mock data for suggested probes
-const mockProbes = [
-	{
-		id: 1,
-		name: "Probe A",
-		location: "Building 1",
-		status: "Active",
-		temperature: "22°C",
-	},
-	{
-		id: 2,
-		name: "Probe B",
-		location: "Building 2",
-		status: "Warning",
-		temperature: "28°C",
-	},
-	{
-		id: 3,
-		name: "Probe C",
-		location: "Building 3",
-		status: "Active",
-		temperature: "21°C",
-	},
-	{
-		id: 4,
-		name: "Probe D",
-		location: "Building 1",
-		status: "Inactive",
-		temperature: "N/A",
-	},
-];
 
 export default async function DashboardPage() {
 	const zones: Zone[] = await getAllZones();
@@ -83,45 +52,7 @@ export default async function DashboardPage() {
 				</Card>
 
 				{/* Suggested Probes Table */}
-				<Card className="">
-					<CardHeader>
-						<CardTitle>Suggested Probes</CardTitle>
-					</CardHeader>
-					<CardContent className="overflow-auto h-[calc(100%-5rem)]">
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Name</TableHead>
-									<TableHead>Location</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead>Temp</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{mockProbes.map((probe) => (
-									<TableRow key={probe.id}>
-										<TableCell className="font-medium">{probe.name}</TableCell>
-										<TableCell>{probe.location}</TableCell>
-										<TableCell>
-											<span
-												className={`px-2 py-1 rounded-full text-xs ${
-													probe.status === "Active"
-														? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-														: probe.status === "Warning"
-															? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-															: "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-200"
-												}`}
-											>
-												{probe.status}
-											</span>
-										</TableCell>
-										<TableCell>{probe.temperature}</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					</CardContent>
-				</Card>
+				<NearestBuilding />
 			</div>
 
 			{/* Bottom Section: All Zones Table */}

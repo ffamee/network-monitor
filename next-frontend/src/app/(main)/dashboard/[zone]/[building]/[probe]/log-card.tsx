@@ -65,7 +65,8 @@ export default async function LogCard({
 	};
 
 	return (
-		<div className="col-span-1 md:col-span-2 lg:col-span-4 bg-card p-4 rounded-2xl border border-ring shadow-md">
+		// <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-card p-4 rounded-2xl border border-ring shadow-md">
+		<div className="col-span-1 md:col-span-2 lg:col-span-3 bg-card p-4 rounded-2xl border border-ring shadow-md">
 			<div className="text-lg font-semibold text-card-foreground flex items-center gap-2">
 				Recent Events
 				<History size={20} className="text-primary mb-2" />

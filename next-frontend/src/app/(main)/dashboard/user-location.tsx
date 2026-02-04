@@ -36,5 +36,6 @@ export default function UserLocationMap() {
 		return null;
 	}
 
-	return <AdvancedMarker position={userLocation} />;
+	return null;
+	// return <AdvancedMarker position={userLocation} />;
 }

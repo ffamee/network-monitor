@@ -14,11 +14,11 @@ export default function MainNavigationTab() {
 	const tabsList = [
 		{ name: "Map", href: "map" },
 		{ name: "Dashboard", href: "dashboard" },
-		{ name: "Settings", href: "settings" },
+		// { name: "Settings", href: "#" },
 	];
 
 	return (
-		<nav className="hidden md:grid md:grid-cols-3 items-center gap-1 p-1 bg-sidebar-accent rounded-full border border-sidebar-ring w-full max-w-sm">
+		<nav className="hidden md:grid md:grid-cols-2 items-center gap-1 p-1 bg-sidebar-accent rounded-full border border-sidebar-ring w-full max-w-sm">
 			{tabsList.map((item) => (
 				<Link
 					key={item.name}

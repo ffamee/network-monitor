@@ -107,12 +107,15 @@ export default async function ProbePage({
 								</div>
 							</div>
 							<div className="flex items-center gap-2 self-end md:self-center">
-								<button className="hidden md:flex items-center gap-2 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg transition-colors border border-stone-700">
+								{/* <button className="hidden md:flex items-center gap-2 px-4 py-2 bg-stone-700 hover:bg-stone-600 text-white rounded-lg transition-colors border border-stone-700">
 									<Terminal size={16} /> Console
-								</button>
-								<button className="hidden lg:flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors shadow-lg shadow-blue-900/20">
+								</button> */}
+								<a
+									href=""
+									className="hidden lg:flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors shadow-lg shadow-blue-900/20"
+								>
 									<RefreshCw size={16} /> Refresh
-								</button>
+								</a>
 								<ManageButton probe={probe} />
 							</div>
 						</div>
@@ -134,7 +137,7 @@ export default async function ProbePage({
 					<ProbeInfoCard probe={probeData} />
 
 					{/* Chart (Large Span) - Placeholder for now */}
-					<BarChart />
+					{/* <BarChart /> */}
 
 					{/* Logs Card */}
 					<Suspense fallback={<div>Loading logs...</div>}>

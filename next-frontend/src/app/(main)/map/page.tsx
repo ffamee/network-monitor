@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, use } from "react";
 import PanelControl from "./panel-control";
 import { Layers } from "lucide-react";
 import GoogleMap from "@/components/gl-map/google-map";
@@ -17,14 +17,20 @@ import { Slug } from "@/models/slug";
 type ProbeMap = ProbeDetail & { building: Slug };
 export type ZoneMap = Zone & { buildingCount: number } & { probes: ProbeMap[] };
 
-export default function MapPage() {
+export default function MapPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ zone?: string }>;
+}) {
 	const [zone, setZone] = useState<ZoneMap[]>([]);
 	const [isPanelOpen, setIsPanelOpen] = useState(false);
 	const [visible, setVisible] = useState<{
 		[key: string]: { polygon: boolean; pin: boolean };
 	}>({});
-	const searchParams = useSearchParams();
-	const queryZone = searchParams.get("zone");
+	// const searchParams = useSearchParams();
+	const params = use(searchParams);
+	// const queryZone = searchParams.get("zone");
+	const queryZone = params.zone || null;
 
 	const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 	const [lightboxImages, setLightboxImages] = useState<ImageInfo[]>([]);

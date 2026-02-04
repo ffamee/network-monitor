@@ -33,9 +33,9 @@ export function ManageButton({ probe }: { probe: string }) {
 				<DropdownMenuItem className="block lg:hidden">
 					<Link href="/refresh">Refresh</Link>
 				</DropdownMenuItem>
-				<DropdownMenuItem className="block md:hidden">
+				{/* <DropdownMenuItem className="block md:hidden">
 					<Link href="/console">Open Console</Link>
-				</DropdownMenuItem>
+				</DropdownMenuItem> */}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

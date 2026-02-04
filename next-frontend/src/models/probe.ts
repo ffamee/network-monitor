@@ -30,4 +30,13 @@ type ProbeWithStats = ProbeDetail & {
 	lastSeenAt: Date;
 };
 
-export type { Probe, ProbeDetail, ProbeWithStats };
+type ProbeFullStats = ProbeDetail & {
+	name: string;
+	status: string;
+	latency: number | string;
+	dns: number | string;
+	download: number | null;
+	upload: number | null;
+};
+
+export type { Probe, ProbeDetail, ProbeWithStats, ProbeFullStats };
